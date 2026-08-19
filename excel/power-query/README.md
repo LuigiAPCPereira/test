@@ -10,9 +10,12 @@ Consultas auxiliares para evoluir a planilha sem substituir o que já funciona a
 4. `OSOperacional` — `OSOperacional.m`
 5. `DocumentosOperacionais` — `DocumentosOperacionais.m`
 6. `AcoesOperacionais` — `AcoesOperacionais.m`
-7. `QualidadeDados` — `QualidadeDados.m`
+7. `ResumoOperacional` — `ResumoOperacional.m`
+8. `QualidadeDados` — `QualidadeDados.m`
 
 A ordem importa porque as consultas finais reaproveitam as anteriores.
+
+A especificação de layout está em `../CAMADA_VISUAL.md`.
 
 ## Carregamento recomendado na primeira validação
 
@@ -21,20 +24,44 @@ A ordem importa porque as consultas finais reaproveitam as anteriores.
 - `Medidor`: tabela em uma nova aba **Medidor**.
 - `AcoesOperacionais`: tabela em uma nova aba **Ações Operacionais**.
 - `QualidadeDados`: tabela em uma nova aba **Qualidade dos Dados**.
-- `OSOperacional`: inicialmente **somente conexão**; a aba Tableau atual continua preservada.
-- `DocumentosOperacionais`: inicialmente **somente conexão**; a aba SuasTrans atual continua preservada.
-
-Dessa forma a implementação nova pode ser comparada com as telas atuais sem quebrar o processo que já é usado no dia a dia.
+- `OSOperacional`: inicialmente **somente conexão** ou aba separada para comparação.
+- `DocumentosOperacionais`: **somente conexão**.
+- `ResumoOperacional`: **somente conexão**; alimenta a camada visual da aba Ações Operacionais.
 
 ## Dependências
 
 - `PreventivaRodante` → planilha mãe no SharePoint + `MaxTrack`.
-- `ManoTer` → `ConsultarFrotasNordeste` + `SuasTrans`.
-- `Medidor` → `ConsultarFrotasNordeste` + `SuasTrans`.
-- `OSOperacional` → `Tableu`.
+- `ManoTer` → `SuasTrans`.
+- `Medidor` → `SuasTrans`.
+- `OSOperacional` → consulta `Tableu`.
 - `DocumentosOperacionais` → `SuasTrans`.
 - `AcoesOperacionais` → `PreventivaRodante` + `DocumentosOperacionais` + `OSOperacional`.
+- `ResumoOperacional` → `AcoesOperacionais`.
 - `QualidadeDados` → bases existentes e consultas novas.
+
+## Importante: consulta não é a mesma coisa que aba
+
+`OSOperacional` usa a **consulta Power Query** chamada `Tableu` como fonte. Ela não precisa da aba carregada `Tableu` para funcionar.
+
+Depois da validação é possível deixar a consulta `Tableu` como **Somente Criar Conexão** e usar apenas `OSOperacional` como página visível. O que não pode ser feito é excluir a consulta `Tableu`, porque isso quebraria a dependência.
+
+O mesmo princípio vale para outras consultas auxiliares.
+
+## Desempenho
+
+As bases finais são pequenas; a demora não vem do agrupamento de 57 placas ou de algumas centenas de documentos.
+
+A arquitetura original usa `SharePoint.Files(...)` em várias consultas. Essa função pode enumerar muitos arquivos do site antes de aplicar o filtro de pasta. Além disso, uma consulta derivada pode provocar reavaliações das consultas-pai durante o refresh.
+
+`Medidor` e `ManoTer` foram simplificadas para:
+
+- usar apenas `SuasTrans` como fonte operacional;
+- obter NUCLEO, Filial e Frota diretamente da SuasTrans;
+- materializar a pequena base normalizada com `Table.Buffer` antes de reutilizá-la dentro da própria consulta.
+
+Isso elimina a dependência adicional de `ConsultarFrotasNordeste` nessas duas consultas e deve reduzir bastante o custo de atualização delas.
+
+A próxima otimização de desempenho deve ocorrer na **fonte**, trocando a enumeração ampla do SharePoint por navegação direta à pasta/biblioteca quando o caminho exato estiver validado no Excel corporativo.
 
 ## Ações Operacionais
 
@@ -56,9 +83,25 @@ Mano/Ter e Medidor não são adicionados novamente como categorias separadas na 
 - `PRIORIDADE`
 - `CATEGORIA`
 - `AÇÃO`
-- `SITUAÇÃO`
 - `MÊS-ANO`
 - `PLACA`
+
+## Resumo Operacional
+
+`ResumoOperacional` gera uma linha por núcleo e uma linha `TOTAL` com os principais contadores da fila de ações:
+
+- total de ações;
+- urgentes;
+- preventivas;
+- documentos;
+- OS;
+- fechar no Máximo;
+- cobrar mecânica;
+- regularizar documento;
+- programar renovação;
+- programar preventiva.
+
+Essa consulta é apoio visual e deve ficar como **somente conexão**.
 
 ## Preventiva Rodante
 
@@ -98,7 +141,7 @@ A validade usada no PROCV/XLOOKUP é a **menor das três**. `Documento mais pró
 
 - 02.02 — Calibração — Medidor Mássico
 
-Mantém uma linha por placa e sinaliza ausência ou duplicidade.
+Mantém uma linha por placa e sinaliza ausência ou duplicidade. NUCLEO, Filial e Frota são lidos diretamente da base SuasTrans para evitar a incompatibilidade `Núcleo` x `NUCLEO` observada anteriormente.
 
 ## OS Operacional
 
@@ -121,23 +164,11 @@ Mantém o status produzido por `SuasTrans` e acrescenta:
 - mês-ano;
 - integridade do registro.
 
-A consulta aceita pequenas variações de nome/capitalização das colunas da base existente.
-
 ## Qualidade dos Dados
 
 É uma tabela de **exceções**, não um dashboard. Quando tudo estiver consistente, deve ficar vazia ou quase vazia.
 
-Ela verifica:
-
-- placa sem KM no MaxTrack;
-- placa duplicada no MaxTrack;
-- ausência dos 9 tipos documentais esperados por placa;
-- documento duplicado no SuasTrans;
-- problemas de Mano/Ter;
-- problemas de Medidor;
-- dados insuficientes da Preventiva Rodante;
-- campos documentais inválidos;
-- OS fora do fluxo conhecido.
+Ela verifica ausência/duplicidade de KM, documentos esperados, Mano/Ter, Medidor, Preventiva Rodante e status de OS fora do fluxo conhecido.
 
 ## Princípio de segurança
 
