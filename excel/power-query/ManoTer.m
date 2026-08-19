@@ -5,9 +5,9 @@ let
     // 02.03 Termômetro Analógico
     // 02.04 Manômetro Horizontal
     //
-    // Fontes: ConsultarFrotasNordeste + SuasTrans.
-    // Saída: 1 linha por placa da frota Nordeste, pronta para
-    // PROCV/XLOOKUP e segmentações.
+    // Fonte única: SuasTrans.
+    // A SuasTrans já contém Placa, Frota, NUCLEO e Filial, então não
+    // é necessário consultar novamente ConsultarFrotasNordeste.
     // ============================================================
 
     DataReferencia = Date.From(DateTime.FixedLocalNow()),
@@ -25,49 +25,43 @@ let
         else if Text.StartsWith(tipo, "02.04") then "Manômetro Horizontal"
         else tipo,
 
-    // -------- Base oficial de placas --------
-    Frota0 = Table.SelectColumns(
-        ConsultarFrotasNordeste,
-        {"Placa", "Frota", "NUCLEO", "Filial"},
+    Fonte0 = Table.SelectColumns(
+        SuasTrans,
+        {"NUCLEO", "Filial", "Placa", "Frota", "Tipo de Documento", "Validade"},
         MissingField.UseNull
     ),
 
-    Frota1 = Table.TransformColumns(
-        Frota0,
+    Fonte1 = Table.TransformColumns(
+        Fonte0,
         {
+            {"NUCLEO", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
+            {"Filial", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
             {"Placa", each if _ = null then null else Text.Upper(Text.Trim(Text.From(_))), type nullable text},
             {"Frota", each if _ = null then null else Text.Upper(Text.Trim(Text.From(_))), type nullable text},
-            {"NUCLEO", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
-            {"Filial", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text}
-        }
-    ),
-
-    Frota = Table.Distinct(
-        Table.SelectRows(Frota1, each [Placa] <> null and [Placa] <> ""),
-        {"Placa"}
-    ),
-
-    // -------- Documentos SuasTrans --------
-    Fonte = Table.SelectColumns(
-        SuasTrans,
-        {"Placa", "Tipo de Documento", "Validade"},
-        MissingField.UseNull
-    ),
-
-    Normalizar = Table.TransformColumns(
-        Fonte,
-        {
-            {"Placa", each if _ = null then null else Text.Upper(Text.Trim(Text.From(_))), type nullable text},
             {"Tipo de Documento", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
             {"Validade", each try Date.From(_) otherwise null, type nullable date}
         }
     ),
 
+    // A base é pequena. O buffer evita reavaliar a consulta SuasTrans
+    // para montar o universo de placas e, depois, filtrar os três itens.
+    Base = Table.Buffer(
+        Table.SelectRows(Fonte1, each [Placa] <> null and [Placa] <> "")
+    ),
+
+    Frota = Table.Group(
+        Base,
+        {"Placa"},
+        {
+            {"NUCLEO", each List.First(List.RemoveNulls([NUCLEO]), null), type nullable text},
+            {"Filial", each List.First(List.RemoveNulls([Filial]), null), type nullable text},
+            {"Frota", each List.First(List.RemoveNulls([Frota]), null), type nullable text}
+        }
+    ),
+
     Filtrar = Table.SelectRows(
-        Normalizar,
-        each [Placa] <> null
-            and [Placa] <> ""
-            and List.Contains(TiposEsperados, [Tipo de Documento])
+        Base,
+        each List.Contains(TiposEsperados, [Tipo de Documento])
     ),
 
     AgruparDocs = Table.Group(
@@ -100,10 +94,8 @@ let
         RemoverDocs,
         "Validade Mano/Ter",
         each
-            let
-                Datas = List.RemoveNulls(Table.Column([Linhas], "Validade"))
-            in
-                if List.Count(Datas) = 0 then null else List.Min(Datas),
+            let Datas = List.RemoveNulls(Table.Column([Linhas], "Validade"))
+            in if List.Count(Datas) = 0 then null else List.Min(Datas),
         type nullable date
     ),
 
@@ -211,6 +203,7 @@ let
             else if [#"Documentos faltantes"] <> null then "DOCUMENTO FALTANTE"
             else if [#"Documentos duplicados"] <> null then "DOCUMENTO DUPLICADO"
             else if [#"Validade Mano/Ter"] = null then "VALIDADE AUSENTE"
+            else if [NUCLEO] = null then "NÚCLEO AUSENTE"
             else "OK",
         type text
     ),
