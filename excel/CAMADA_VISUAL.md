@@ -17,7 +17,7 @@ Indicadores principais:
 - **Documentos vencidos** — ação REGULARIZAR DOCUMENTO.
 - **Preventivas para programar** — PROGRAMAR PREVENTIVA + TRATAR PREVENTIVA.
 
-A linha TOTAL de `ResumoOperacional` alimenta os cartões gerais. As linhas por núcleo permitem comparar Bahia, Ceará e Pernambuco sem criar fórmulas extras.
+A linha TOTAL de `ResumoOperacional` alimenta os cartões gerais. As linhas por núcleo permitem comparar os núcleos sem criar fórmulas extras.
 
 ### Segmentadores
 
@@ -100,7 +100,89 @@ Não substituir pela `DocumentosOperacionais` neste momento.
 
 `DocumentosOperacionais` deve ficar como **somente conexão** e servir de base para `AcoesOperacionais`.
 
-## 4. Aba Mano-Ter
+## 4. Aba OS Operacional
+
+`Tableu` é a **consulta fonte/staging**.
+
+`OSOperacional` é uma **visão derivada** da consulta `Tableu`.
+
+Para `OSOperacional` funcionar, a consulta `Tableu` precisa existir, mas a planilha/aba carregada chamada `Tableu` não precisa ficar visível.
+
+Durante o teste:
+
+- manter a aba Tableu atual;
+- deixar `OSOperacional` como somente conexão ou carregar em uma aba separada para comparação.
+
+Depois da validação:
+
+- manter a consulta `Tableu` como **somente conexão**;
+- usar `OSOperacional` como a página visível de OS.
+
+Nunca excluir a consulta `Tableu` enquanto `OSOperacional` depender dela.
+
+Segmentadores recomendados:
+
+- NUCLEO
+- AÇÃO OPERACIONAL
+- STATUS
+- PERÍODO
+- MÊS-ANO OS
+- PLACA
+
+Colunas de maior destaque:
+
+- OS
+- Descrição
+- NUCLEO
+- PLACA
+- STATUS
+- AÇÃO OPERACIONAL
+- DATA OS
+- DIAS DESDE SOLICITAÇÃO
+- PREENCHIDO_POR
+
+## 5. Aba Atualização Mãe
+
+Nova visão consolidada gerada por `AtualizacaoMae`.
+
+Ela existe para reduzir a quantidade de abas/consultas simples usadas apenas como fonte de PROCV/XLOOKUP.
+
+Uma linha por placa com:
+
+1. Placa
+2. Frota
+3. NUCLEO
+4. Filial
+5. CIV
+6. Crono
+7. CIPP
+8. TH
+9. Medidor
+10. Mano/Ter
+11. Documento Mano/Ter mais próximo
+12. CRLV
+13. Integridade
+
+Essa página pode, depois da validação, substituir como fonte de atualização as abas simples antigas `CIV`, `Crono`, `CIPP`, `TH`, `Mássico`, `Medidores` e `CRLV`.
+
+Não remover as antigas antes de comparar os resultados.
+
+### Segmentadores
+
+Para o uso normal de PROCV/XLOOKUP, nenhum segmentador é obrigatório.
+
+Se quiser usar a mesma página para conferir Mano/Ter, adicionar:
+
+- NUCLEO
+- Documento Mano/Ter mais próximo
+- Integridade
+- Placa
+
+Assim é possível filtrar, por exemplo, apenas placas em que **Termômetro** é o documento que vence primeiro, sem precisar de outra base para o PROCV.
+
+## 6. Aba Mano-Ter
+
+Pode permanecer durante a validação e se o segmentador específico for útil.
 
 Segmentadores:
 
@@ -119,7 +201,9 @@ Colunas de PROCV/XLOOKUP devem continuar nas primeiras posições:
 
 Depois entram Status, Prioridade, NUCLEO, Filial, Frota e Integridade.
 
-## 5. Aba Medidor
+Se a aba `Atualização Mãe` cobrir o uso real, esta página pode futuramente virar apenas uma visão de conferência.
+
+## 7. Aba Medidor
 
 Representa exclusivamente o medidor mássico 02.02.
 
@@ -138,27 +222,9 @@ Primeiras colunas:
 
 Assim o PROCV/XLOOKUP continua simples.
 
-## 6. Tableau e OS Operacional
+A consulta usa NUCLEO, Filial e Frota da própria `SuasTrans`, evitando a incompatibilidade `Núcleo` x `NUCLEO` que gerou valores `null` anteriormente.
 
-`Tableu` é a **consulta fonte/staging**.
-
-`OSOperacional` é uma **visão derivada** da consulta `Tableu`.
-
-Para `OSOperacional` funcionar, a consulta `Tableu` precisa existir, mas a planilha/aba carregada chamada `Tableu` não precisa ficar visível.
-
-Durante o teste:
-
-- manter a aba Tableu atual;
-- deixar `OSOperacional` como somente conexão ou carregar em uma aba separada para comparação.
-
-Depois da validação:
-
-- manter a consulta `Tableu` como **somente conexão**;
-- usar `OSOperacional` como a página visível de OS, se ela realmente ficar melhor para o trabalho diário.
-
-Nunca excluir a consulta `Tableu` enquanto `OSOperacional` depender dela.
-
-## 7. Qualidade dos Dados
+## 8. Qualidade dos Dados
 
 Deve ser discreta e usada apenas para exceções.
 
@@ -170,24 +236,46 @@ Segmentadores opcionais:
 
 Se não houver problema, a tabela deve ficar vazia ou quase vazia.
 
-## 8. Estrutura final recomendada
+## 9. Estrutura final recomendada
 
-Páginas de operação:
+### Páginas principais
 
 1. Ações Operacionais
 2. Preventiva Rodante
 3. SuasTrans
 4. OS Operacional
-5. Mano-Ter
-6. Medidor
-7. Qualidade dos Dados
+5. Atualização Mãe
+6. Qualidade dos Dados
 
-Consultas auxiliares que podem ficar somente conexão:
+### Páginas opcionais de detalhe
+
+- Mano-Ter
+- Medidor
+
+Elas ficam enquanto agregarem valor pelos segmentadores específicos. Se `Atualização Mãe` cobrir a necessidade, não é obrigatório manter duas páginas adicionais.
+
+### Consultas auxiliares como somente conexão
 
 - ConsultarFrotasNordeste
-- MaxTrack (se não houver necessidade de visualização própria)
 - Tableu
 - DocumentosOperacionais
 - ResumoOperacional
+- DiagnosticoPastasSharePoint (temporária; remover depois de capturar os caminhos)
+
+`MaxTrack` pode ficar visível somente se houver utilidade operacional em consultar a base bruta; caso contrário, também pode virar somente conexão depois da validação.
 
 A aba SuasTrans permanece visível porque já faz parte do processo operacional atual.
+
+## 10. Performance visual
+
+Evitar gráficos e objetos desnecessários. O arquivo é ferramenta de operação, não apresentação executiva.
+
+Preferir:
+
+- tabelas estruturadas;
+- poucos segmentadores bem escolhidos;
+- formatação condicional;
+- indicadores simples no topo;
+- consultas de apoio como somente conexão.
+
+A estratégia de performance das fontes e do refresh está documentada em `PERFORMANCE.md`.
