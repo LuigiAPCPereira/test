@@ -2,68 +2,64 @@ let
     // ============================================================
     // MEDIDOR MÁSSICO — 02.02
     //
-    // Fontes: ConsultarFrotasNordeste + SuasTrans.
-    // Saída: 1 linha por placa da frota Nordeste, pronta para
-    // PROCV/XLOOKUP e segmentações.
-    // Em duplicidade, usa a menor validade e sinaliza Integridade.
+    // Fonte única: SuasTrans.
+    // A própria SuasTrans já contém Placa, Frota, NUCLEO e Filial.
+    // Isso evita consultar novamente ConsultarFrotasNordeste e reduz
+    // avaliações remotas desnecessárias no refresh.
     // ============================================================
 
     DataReferencia = Date.From(DateTime.FixedLocalNow()),
     TipoEsperado = "02.02 - Calibração - Medidor Mássico",
 
-    // -------- Base oficial de placas --------
-    Frota0 = Table.SelectColumns(
-        ConsultarFrotasNordeste,
-        {"Placa", "Frota", "NUCLEO", "Filial"},
+    Fonte0 = Table.SelectColumns(
+        SuasTrans,
+        {"NUCLEO", "Filial", "Placa", "Frota", "Tipo de Documento", "Validade"},
         MissingField.UseNull
     ),
 
-    Frota1 = Table.TransformColumns(
-        Frota0,
+    Fonte1 = Table.TransformColumns(
+        Fonte0,
         {
+            {"NUCLEO", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
+            {"Filial", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
             {"Placa", each if _ = null then null else Text.Upper(Text.Trim(Text.From(_))), type nullable text},
             {"Frota", each if _ = null then null else Text.Upper(Text.Trim(Text.From(_))), type nullable text},
-            {"NUCLEO", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
-            {"Filial", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text}
-        }
-    ),
-
-    Frota = Table.Distinct(
-        Table.SelectRows(Frota1, each [Placa] <> null and [Placa] <> ""),
-        {"Placa"}
-    ),
-
-    // -------- Medidor no SuasTrans --------
-    Fonte = Table.SelectColumns(
-        SuasTrans,
-        {"Placa", "Tipo de Documento", "Validade"},
-        MissingField.UseNull
-    ),
-
-    Normalizar = Table.TransformColumns(
-        Fonte,
-        {
-            {"Placa", each if _ = null then null else Text.Upper(Text.Trim(Text.From(_))), type nullable text},
             {"Tipo de Documento", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
             {"Validade", each try Date.From(_) otherwise null, type nullable date}
         }
     ),
 
-    Filtrar = Table.SelectRows(
-        Normalizar,
-        each [Placa] <> null
-            and [Placa] <> ""
-            and [Tipo de Documento] = TipoEsperado
+    // A base tem somente algumas centenas de linhas. O buffer aqui evita
+    // reavaliar SuasTrans quando a mesma base é usada para frota e medidor.
+    Base = Table.Buffer(
+        Table.SelectRows(Fonte1, each [Placa] <> null and [Placa] <> "")
     ),
 
+    // Universo de placas derivado da própria SuasTrans. Assim uma placa
+    // continua aparecendo mesmo se o 02.02 estiver faltando, desde que
+    // exista qualquer outro documento dela na base.
+    Frota = Table.Group(
+        Base,
+        {"Placa"},
+        {
+            {"NUCLEO", each List.First(List.RemoveNulls([NUCLEO]), null), type nullable text},
+            {"Filial", each List.First(List.RemoveNulls([Filial]), null), type nullable text},
+            {"Frota", each List.First(List.RemoveNulls([Frota]), null), type nullable text}
+        }
+    ),
+
+    Medidores = Table.SelectRows(Base, each [Tipo de Documento] = TipoEsperado),
+
     AgruparDocs = Table.Group(
-        Filtrar,
+        Medidores,
         {"Placa"},
         {
             {"Qtd registros", each Table.RowCount(_), Int64.Type},
-            {"Validade Medidor", each
-                let Datas = List.RemoveNulls([Validade])
-                in if List.Count(Datas) = 0 then null else List.Min(Datas),
+            {
+                "Validade Medidor",
+                each
+                    let Datas = List.RemoveNulls([Validade])
+                    in if List.Count(Datas) = 0 then null else List.Min(Datas),
                 type nullable date
             }
         }
@@ -85,13 +81,13 @@ let
         {"Qtd registros", "Validade Medidor"}
     ),
 
-    AddQtdNormalizada = Table.TransformColumns(
+    QtdNormalizada = Table.TransformColumns(
         Expandir,
         {{"Qtd registros", each if _ = null then 0 else Int64.From(_), Int64.Type}}
     ),
 
     AddDias = Table.AddColumn(
-        AddQtdNormalizada,
+        QtdNormalizada,
         "Dias para vencer",
         each if [#"Validade Medidor"] = null
             then null
@@ -141,6 +137,7 @@ let
             if [#"Qtd registros"] = 0 then "DOCUMENTO FALTANTE"
             else if [#"Qtd registros"] > 1 then "DOCUMENTO DUPLICADO"
             else if [#"Validade Medidor"] = null then "VALIDADE AUSENTE"
+            else if [NUCLEO] = null then "NÚCLEO AUSENTE"
             else "OK",
         type text
     ),
