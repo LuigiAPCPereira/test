@@ -32,17 +32,26 @@ let
         else codigo,
 
     // -------- Frota oficial --------
-    PlacasFrota0 = Table.SelectColumns(
+    // ConsultarFrotasNordeste usa "Núcleo"; normalizamos aqui para NUCLEO.
+    PlacasFrotaBase = Table.SelectColumns(
         ConsultarFrotasNordeste,
-        {"Placa", "Frota", "NUCLEO", "Filial"},
+        {"Núcleo", "Filial", "Placa", "Frota"},
         MissingField.UseNull
+    ),
+
+    PlacasFrota0 = Table.RenameColumns(
+        PlacasFrotaBase,
+        {{"Núcleo", "NUCLEO"}},
+        MissingField.Ignore
     ),
 
     PlacasFrota1 = Table.TransformColumns(
         PlacasFrota0,
         {
             {"Placa", each TextoUpper(_), type nullable text},
-            {"Frota", each TextoUpper(_), type nullable text}
+            {"Frota", each TextoUpper(_), type nullable text},
+            {"NUCLEO", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
+            {"Filial", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text}
         }
     ),
 
@@ -196,7 +205,7 @@ let
     ),
 
     // -------- Padronização --------
-    Padrao = {"Gravidade", "Origem", "Placa", "Frota", "NUCLEO", "Filial", "Problema", "Detalhe"},
+    Padrao = {"NUCLEO", "Filial", "Placa", "Gravidade", "Origem", "Frota", "Problema", "Detalhe"},
 
     SemMaxTrackFinal = Table.SelectColumns(SemMaxTrack, Padrao, MissingField.UseNull),
     MaxDuplicadoFinal = Table.SelectColumns(MaxDuplicado, Padrao, MissingField.UseNull),
