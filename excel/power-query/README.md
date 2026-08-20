@@ -2,7 +2,12 @@
 
 Consultas auxiliares para evoluir a planilha sem substituir o que já funciona antes de validar no Excel corporativo.
 
-A especificação de layout está em `../CAMADA_VISUAL.md` e o plano de performance em `../PERFORMANCE.md`.
+Documentação complementar:
+
+- `../CAMADA_VISUAL.md`
+- `../CAMADA_VISUAL_IMPLEMENTACAO.md`
+- `../PERFORMANCE.md`
+- `../MIGRACAO_CARGAS_REFRESH.md`
 
 ## Ordem de criação no Excel
 
@@ -31,9 +36,11 @@ Carregar em tabela:
 
 Somente conexão inicialmente:
 
-- `OSOperacional` (ou aba separada durante a comparação)
+- `OSOperacional` — ou aba separada durante comparação
 - `DocumentosOperacionais`
 - `ResumoOperacional`
+
+Depois da validação, `ManoTer` e `Medidor` também podem deixar de ser carregadas se `AtualizacaoMae` cobrir o uso real dos segmentadores/PROCVs.
 
 ## Dependências
 
@@ -55,6 +62,28 @@ Depois da validação é possível deixar `Tableu` como **Somente Criar Conexão
 
 O mesmo princípio vale para outras consultas auxiliares.
 
+## Estado original confirmado
+
+A pasta de trabalho original possui 11 consultas carregadas em tabelas visíveis:
+
+- ConsultarFrotasNordeste
+- SuasTrans
+- MaxTrack
+- Tableu
+- CIV
+- Crono
+- CIPP
+- TH
+- Medidores
+- Mássico
+- CRLV
+
+As sete últimas consultas documentais são filtros simples de `SuasTrans`.
+
+Também foi confirmado que `ConsultarFrotasNordeste`, `SuasTrans`, `MaxTrack` e `Tableu` estavam configuradas com refresh ao abrir + intervalo de 60 minutos + atualização em segundo plano.
+
+A migração dessas cargas está detalhada em `../MIGRACAO_CARGAS_REFRESH.md`.
+
 ## AtualizacaoMae
 
 `AtualizacaoMae` consolida em uma única linha por placa as datas usadas para atualizar a planilha mãe:
@@ -72,7 +101,7 @@ Também informa integridade, documentos faltantes e duplicados.
 
 Depois de comparar os resultados, ela pode substituir como fonte dos PROCV/XLOOKUP as consultas simples antigas `CIV`, `Crono`, `CIPP`, `TH`, `Mássico`, `Medidores` e `CRLV`.
 
-Isso é importante também para performance: várias consultas carregadas que referenciam `SuasTrans` podem causar novas avaliações da árvore da fonte.
+O segmentador `Documento Mano/Ter mais próximo` pode ser colocado diretamente nessa página, evitando uma aba adicional se o fluxo ficar confortável.
 
 ## Medidor
 
@@ -126,19 +155,19 @@ Uma linha por núcleo + `TOTAL` com:
 - programar renovação;
 - programar preventiva.
 
-Deve ficar como **somente conexão** e servir de apoio à camada visual.
+Para alimentar cartões comuns de célula no Excel, carregar essa tabela em uma pequena aba `_Apoio` que pode ficar oculta.
 
 ## Performance
-
-A planilha original possui várias consultas carregadas que derivam de `SuasTrans`, além de fontes baseadas em `SharePoint.Files`.
 
 As otimizações já feitas:
 
 - `Medidor` e `ManoTer` não consultam novamente `ConsultarFrotasNordeste`;
-- `AtualizacaoMae` cria um caminho para consolidar sete consultas simples em uma única saída;
-- `DiagnosticoPastasSharePoint` captura os caminhos exatos das pastas para a próxima migração.
+- `AtualizacaoMae` cria um caminho para substituir sete cargas documentais simples;
+- foi identificado o refresh automático ao abrir/a cada 60 min nas quatro consultas-base;
+- `DiagnosticoPastasSharePoint` captura os caminhos exatos das pastas para a próxima migração;
+- `fnArquivoMaisRecenteSharePoint` já está preparada para usar navegação direta depois da validação dos caminhos.
 
-Próxima etapa: trocar a enumeração ampla de `SharePoint.Files` por navegação direta com `SharePoint.Contents`, depois que os quatro `Folder Path` forem confirmados no Excel corporativo.
+Próxima otimização pesada: trocar a enumeração ampla de `SharePoint.Files` por navegação direta com `SharePoint.Contents`, depois que os quatro `Folder Path` forem confirmados no Excel corporativo.
 
 ## DiagnosticoPastasSharePoint
 
