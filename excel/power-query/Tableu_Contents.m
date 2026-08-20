@@ -203,14 +203,13 @@ let
             and [NUCLEO] <> null and [NUCLEO] <> ""
     ),
 
-    RemoverFrota = Table.RemoveColumns(FiltrarIdentificacao, {"FROTA"}, MissingField.Ignore),
-
     Selecionar = Table.SelectColumns(
-        RemoverFrota,
+        FiltrarIdentificacao,
         {
             "NUCLEO",
             "FILIAL",
             "PLACA",
+            "FROTA",
             "OS",
             "Descrição",
             "RECORRENCIA",
