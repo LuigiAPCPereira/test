@@ -14,15 +14,11 @@ let
         else Arquivo{0}[Content],
 
     PastaExcel = Excel.Workbook(Conteudo, false, true),
-
     BaseDados0 = PastaExcel{[Item = "Base de Dados", Kind = "Sheet"]}[Data],
 
     BaseDados = Table.ReplaceErrorValues(
         BaseDados0,
-        List.Transform(
-            Table.ColumnNames(BaseDados0),
-            each {_, null}
-        )
+        List.Transform(Table.ColumnNames(BaseDados0), each {_, null})
     ),
 
     Coluna1Tratada = List.Transform(
@@ -44,10 +40,7 @@ let
 
     CabecalhosPromovidos = Table.ReplaceErrorValues(
         CabecalhosPromovidos0,
-        List.Transform(
-            Table.ColumnNames(CabecalhosPromovidos0),
-            each {_, null}
-        )
+        List.Transform(Table.ColumnNames(CabecalhosPromovidos0), each {_, null})
     ),
 
     FiltrarNordeste = Table.SelectRows(
@@ -58,22 +51,19 @@ let
     SelecionarColunas = Table.SelectColumns(
         FiltrarNordeste,
         {
+            "Núcleo",
+            "Filial",
             "Placa",
             "Frota",
             "Proprietário",
-            "Mercado",
-            "Filial",
-            "Núcleo"
+            "Mercado"
         },
         MissingField.Ignore
     ),
 
     RemoverErrosFinal = Table.ReplaceErrorValues(
         SelecionarColunas,
-        List.Transform(
-            Table.ColumnNames(SelecionarColunas),
-            each {_, null}
-        )
+        List.Transform(Table.ColumnNames(SelecionarColunas), each {_, null})
     ),
 
     ConverterParaTexto = Table.TransformColumns(
