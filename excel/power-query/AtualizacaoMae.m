@@ -5,22 +5,11 @@ let
     // Objetivo: substituir, após validação, as várias consultas simples
     // (CIV, Crono, CIPP, TH, CRLV, Mássico e Medidores) por UMA tabela
     // com uma linha por placa e todas as validades necessárias.
-    //
-    // Fonte única: SuasTrans.
-    // Isso reduz o número de consultas carregadas que referenciam a mesma
-    // fonte remota e deixa o PROCV/XLOOKUP mais simples.
     // ============================================================
 
     TiposEsperados = {
-        "02.01", // Manômetro Vertical
-        "02.02", // Medidor Mássico
-        "02.03", // Termômetro
-        "02.04", // Manômetro Horizontal
-        "02.05", // CIPP
-        "02.06", // CIV
-        "02.07", // CRLV
-        "02.08", // Cronotacógrafo
-        "02.25"  // Teste Hidrostático
+        "02.01", "02.02", "02.03", "02.04", "02.05",
+        "02.06", "02.07", "02.08", "02.25"
     },
 
     Texto = (valor as nullable any) as nullable text =>
@@ -61,10 +50,8 @@ let
         let
             DataMin = MenorValidade(t, codigos),
             Filtrado =
-                if DataMin = null then
-                    #table({"Codigo", "Validade"}, {})
-                else
-                    Table.SelectRows(t, each List.Contains(codigos, [Codigo]) and [Validade] = DataMin),
+                if DataMin = null then #table({"Codigo", "Validade"}, {})
+                else Table.SelectRows(t, each List.Contains(codigos, [Codigo]) and [Validade] = DataMin),
             Nomes = List.Sort(List.Distinct(List.Transform(List.RemoveNulls(Table.Column(Filtrado, "Codigo")), each NomeCurto(_))))
         in
             if List.Count(Nomes) = 0 then null else Text.Combine(Nomes, " + "),
@@ -87,20 +74,13 @@ let
         }
     ),
 
-    AddCodigo = Table.AddColumn(
-        Fonte1,
-        "Codigo",
-        each CodigoTipo([#"Tipo de Documento"]),
-        type nullable text
-    ),
+    AddCodigo = Table.AddColumn(Fonte1, "Codigo", each CodigoTipo([#"Tipo de Documento"]), type nullable text),
 
     FiltrarEscopo = Table.SelectRows(
         AddCodigo,
         each [Placa] <> null and [Placa] <> "" and List.Contains(TiposEsperados, [Codigo])
     ),
 
-    // A base é pequena depois do filtro e é reutilizada várias vezes dentro
-    // desta mesma avaliação. O buffer aqui evita repetir a enumeração interna.
     Base = Table.Buffer(FiltrarEscopo),
 
     Agrupar = Table.Group(
@@ -171,10 +151,10 @@ let
     Reordenar = Table.ReorderColumns(
         RemoverLinhas,
         {
-            "Placa",
-            "Frota",
             "NUCLEO",
             "Filial",
+            "Placa",
+            "Frota",
             "CIV",
             "Crono",
             "CIPP",
