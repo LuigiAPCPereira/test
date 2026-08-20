@@ -43,8 +43,6 @@ let
         }
     ),
 
-    // A base é pequena. O buffer evita reavaliar a consulta SuasTrans
-    // para montar o universo de placas e, depois, filtrar os três itens.
     Base = Table.Buffer(
         Table.SelectRows(Fonte1, each [Placa] <> null and [Placa] <> "")
     ),
@@ -218,6 +216,8 @@ let
     Reordenar = Table.ReorderColumns(
         AddReferencia,
         {
+            "NUCLEO",
+            "Filial",
             "Placa",
             "Validade Mano/Ter",
             "Documento mais próximo",
@@ -225,8 +225,6 @@ let
             "Prioridade",
             "Dias para vencer",
             "Mês-Ano",
-            "NUCLEO",
-            "Filial",
             "Frota",
             "Integridade",
             "Documentos faltantes",
