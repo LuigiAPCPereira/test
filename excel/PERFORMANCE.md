@@ -1,8 +1,8 @@
 # Performance — Controle de Frotas Nordeste
 
-## Diagnóstico confirmado no arquivo original
+## Diagnóstico confirmado
 
-O arquivo original possui 11 consultas carregadas em abas separadas:
+O DataMashup original mostrou 11 consultas carregadas:
 
 - ConsultarFrotasNordeste
 - SuasTrans
@@ -16,116 +16,130 @@ O arquivo original possui 11 consultas carregadas em abas separadas:
 - Mássico
 - CRLV
 
-A inspeção do DataMashup confirmou que `CIV`, `Crono`, `CIPP`, `TH`, `Medidores`, `Mássico` e `CRLV` são filtros simples de `SuasTrans` por meio da função `FiltrarTidoDoc`.
+`CIV`, `Crono`, `CIPP`, `TH`, `Medidores`, `Mássico` e `CRLV` são filtros simples de `SuasTrans` via `FiltrarTidoDoc`.
 
-O caso `Medidores` é especialmente importante: no arquivo original ele filtra somente `02.03 - Calibração - Termometro Analógico`. Portanto, não implementava a regra real de Mano/Ter.
+`Medidores` no arquivo original filtra somente o documento 02.03 Termômetro; portanto não implementava a regra correta de Mano/Ter.
 
-Também foi confirmado nas conexões do workbook que `ConsultarFrotasNordeste`, `SuasTrans`, `MaxTrack` e `Tableu` estão configuradas com:
+As quatro consultas-base também estavam configuradas com:
 
-- refresh em segundo plano;
-- refresh ao abrir;
+- atualização em segundo plano;
+- atualizar ao abrir;
 - intervalo automático de 60 minutos.
 
-No Power Query, uma consulta que referencia outra não funciona como um cache persistente. Cada consulta derivada pode provocar uma nova avaliação da árvore da consulta-pai. `Table.Buffer` só ajuda dentro da mesma execução da consulta e não transforma uma consulta compartilhada em cache global.
+## Por que isso pesa
 
-Isso é especialmente caro aqui porque as quatro bases usam fontes SharePoint e três delas (`SuasTrans`, `MaxTrack` e `Tableu`) também dependem do mapeamento `ConsultarFrotasNordeste`.
+Consultas referenciadas não funcionam como cache persistente entre cargas independentes. Uma árvore pode ser reavaliada mais de uma vez durante o refresh.
 
-## Objetivo
+Por isso o custo não está nas 57 placas ou 513 linhas finais; está principalmente em:
 
-Reduzir o refresh sem mudar o processo operacional de uma vez.
+- enumeração de SharePoint;
+- múltiplas cargas derivadas da mesma fonte;
+- refresh automático concorrente/desnecessário;
+- consultas de auditoria/visual que podem forçar novas avaliações.
 
-A ordem segura é:
+## Otimizações já preparadas
 
-1. corrigir consultas derivadas desnecessariamente caras;
-2. consolidar as páginas simples usadas só para PROCV/XLOOKUP;
-3. reduzir cargas redundantes e refresh automático;
-4. descobrir os caminhos exatos das quatro fontes SharePoint;
-5. migrar as fontes remotas de `SharePoint.Files` para navegação direta com `SharePoint.Contents`;
-6. somente depois remover cargas/abas antigas que já tenham substituto validado.
+### Medidor e Mano/Ter
 
-## Etapa 1 — concluída
+Usam `SuasTrans` como fonte operacional e não consultam novamente `ConsultarFrotasNordeste`.
 
-`Medidor` e `ManoTer` usam somente `SuasTrans` como fonte operacional.
+Isso também corrigiu o problema `Núcleo` x `NUCLEO` que fazia o medidor aparecer com núcleo nulo.
 
-Isso remove uma referência adicional a `ConsultarFrotasNordeste` nessas duas consultas e corrige o problema `Núcleo` x `NUCLEO` que causava valores nulos.
+### AtualizacaoMae
 
-## Etapa 2 — AtualizacaoMae
-
-A consulta `AtualizacaoMae.m` entrega uma linha por placa com:
+Consolida em uma linha por placa:
 
 - CIV
 - Crono
 - CIPP
 - TH
-- Medidor (02.02 — Medidor Mássico)
-- Mano/Ter (menor validade entre 02.01, 02.03 e 02.04)
+- Medidor Mássico
+- Mano/Ter
 - Documento Mano/Ter mais próximo
 - CRLV
-- integridade e documentos faltantes/duplicados
 
-Depois da validação, essa única tabela pode substituir como fonte de PROCV/XLOOKUP as sete consultas simples antigas.
+Depois de validada, pode substituir as sete cargas documentais simples antigas.
 
-Não desligar as antigas antes de comparar os resultados.
+### Camada visual
 
-## Etapa 3 — política de cargas e refresh
+`ResumoOperacional` foi removida.
 
-O estado original e a sequência de migração estão detalhados em `MIGRACAO_CARGAS_REFRESH.md`.
+Os cartões da página Ações Operacionais devem usar fórmulas sobre `tbAcoesOperacionais`, evitando uma consulta Power Query adicional só para contagem.
 
-Ponto principal: depois da validação, as sete consultas documentais simples não precisam continuar carregadas separadamente.
+### Auditoria
 
-Também é recomendável remover o intervalo automático de 60 minutos quando o fluxo adotado for: adicionar novos exports e executar `Atualizar Tudo` conscientemente. Isso evita refresh inesperado no meio do trabalho.
+`QualidadeDados` e `ValidacaoMigracao_v2` devem ser usadas manualmente depois da estabilização, não como refresh pesado de rotina.
 
-## Etapa 4 — caminhos SharePoint
+## SharePoint — caminhos confirmados
 
-Criar temporariamente a consulta `DiagnosticoPastasSharePoint.m`.
+Teste728:
 
-Ela devolve o `Folder Path` real de:
+- `Documentos Compartilhados/Dados Suastrans`
+- `Documentos Compartilhados/Dados MaxTrack`
+- `Documentos Compartilhados/Dados Tableau`
 
-- Dados Suastrans
-- Dados MaxTrack
-- Dados Tableau
-- Programações Paradas Frotas.xlsm
+Frotas:
 
-Depois de copiar esses quatro caminhos, a consulta de diagnóstico pode ser removida.
+- `Documentos Compartilhados/Manutenção e Disponibilidade`
 
-## Etapa 5 — navegação direta
+## Estratégia SharePoint.Contents
 
-A implementação final deve preferir `SharePoint.Contents` apontando/navegando diretamente à biblioteca/pasta necessária, em vez de listar todos os arquivos e subpastas do site com `SharePoint.Files` e só então filtrar.
+A migração de menor risco não reescreve as consultas inteiras.
 
-A função `fnArquivoMaisRecenteSharePoint.m` já está preparada para receber uma URL/pasta validada e retornar o arquivo `.xlsx` mais recente.
+Foram criadas quatro consultas de fonte:
 
-Referências oficiais:
+- `FonteSuasTrans_Contents`
+- `FonteMaxTrack_Contents`
+- `FonteTableu_Contents`
+- `FontePlanilhaMae_Contents`
 
-- https://learn.microsoft.com/pt-br/power-query/sharepoint-onedrive-files
-- https://learn.microsoft.com/pt-br/powerquery-m/sharepoint-contents
-- https://learn.microsoft.com/pt-br/powerquery-m/sharepoint-files
-- https://learn.microsoft.com/pt-br/power-bi/guidance/power-query-referenced-queries
-- https://learn.microsoft.com/pt-br/powerquery-m/table-buffer
+Cada uma chama `SharePoint.Contents` na URL do **site** e navega pela hierarquia `[Content]` até a pasta necessária.
 
-## Etapa 6 — cargas finais
+Elas preservam `Folder Path` e `Extension` para que as transformações atuais possam continuar praticamente inalteradas.
 
-Após validação, manter visíveis apenas as páginas realmente usadas na operação.
+A troca exata está em `MIGRACAO_SHAREPOINT_CONTENTS.md`.
 
-Sugestão:
+## Próxima sequência de teste
 
-- Ações Operacionais
-- Preventiva Rodante
-- SuasTrans
-- OS Operacional
-- Atualização Mãe
-- Qualidade dos Dados
+1. criar as quatro fontes como somente conexão;
+2. abrir cada uma e confirmar que mostra somente a pasta esperada;
+3. trocar a origem de `ConsultarFrotasNordeste`;
+4. trocar a origem de `SuasTrans`;
+5. medir `SuasTrans`, `Medidor` e `ManoTer`;
+6. trocar MaxTrack;
+7. trocar Tableu;
+8. validar `AtualizacaoMae`;
+9. retirar as sete cargas documentais redundantes;
+10. medir `Atualizar Tudo` novamente.
 
-`Mano-Ter` e `Medidor` podem permanecer se os segmentadores específicos forem úteis no dia a dia. Caso a `Atualização Mãe` cubra o uso real, eles podem virar visões auxiliares ou ser eliminados depois.
+## Política de refresh alvo
+
+Depois de estabilizar, o fluxo preferido é:
+
+`adicionar novos exports -> Atualizar Tudo -> aguardar conclusão -> trabalhar`
+
+Se esse fluxo atender o uso real, desativar:
+
+- intervalo de 60 minutos;
+- atualizar ao abrir, se não for necessário.
+
+Manter apenas o refresh deliberado reduz atualizações inesperadas durante o trabalho.
 
 ## Como medir
 
-Medir separadamente, sempre usando o mesmo arquivo e a mesma rede:
+Sempre na mesma rede/arquivo:
 
-1. tempo de atualização de `SuasTrans`;
-2. tempo de atualização de `Medidor`;
-3. tempo de `Atualizar Tudo`;
-4. repetir depois de consolidar as consultas simples;
-5. repetir depois de retirar refresh/cargas redundantes;
-6. repetir depois de migrar as fontes para `SharePoint.Contents`.
+- SuasTrans isolada;
+- Medidor isolado;
+- ManoTer isolado;
+- Atualizar Tudo;
+- repetir após SharePoint.Contents;
+- repetir após remover as sete cargas antigas.
 
-Não usar apenas o tempo de preview no Editor como medida final; o que interessa é o refresh executado no uso normal do Excel.
+O tempo relevante é o refresh normal do Excel, não apenas o preview do Editor do Power Query.
+
+## Segurança
+
+Não alterar níveis de privacidade corporativos para contornar `Formula.Firewall`.
+
+Se o firewall aparecer, registrar consulta e etapa. O diagnóstico anterior mostrou que combinar sites diretamente numa consulta nova pode ativar a barreira de privacidade; por isso as fontes foram separadas por site/pasta.
