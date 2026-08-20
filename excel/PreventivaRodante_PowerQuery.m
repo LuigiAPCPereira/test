@@ -7,15 +7,12 @@ let
 
     DataReferencia = Date.From(DateTime.FixedLocalNow()),
 
-    // -------- Funções auxiliares --------
     TextoLimpo = (valor as nullable any) as nullable text =>
         if valor = null then null else Text.Upper(Text.Trim(Text.From(valor))),
 
     NumeroBR = (valor as nullable any) as nullable number =>
-        if valor = null then
-            null
-        else if Value.Is(valor, type number) then
-            Number.From(valor)
+        if valor = null then null
+        else if Value.Is(valor, type number) then Number.From(valor)
         else
             let
                 txt = Text.Trim(Text.From(valor)),
@@ -24,12 +21,9 @@ let
                 convertido,
 
     DataBR = (valor as nullable any) as nullable date =>
-        if valor = null then
-            null
-        else if Value.Is(valor, type date) then
-            Date.From(valor)
-        else if Value.Is(valor, type datetime) or Value.Is(valor, type datetimezone) then
-            Date.From(valor)
+        if valor = null then null
+        else if Value.Is(valor, type date) then Date.From(valor)
+        else if Value.Is(valor, type datetime) or Value.Is(valor, type datetimezone) then Date.From(valor)
         else
             let
                 txt = Text.Trim(Text.From(valor)),
@@ -40,11 +34,8 @@ let
     EncontrarColuna = (nomesDisponiveis as list, candidatos as list) as nullable text =>
         List.First(List.Select(candidatos, each List.Contains(nomesDisponiveis, _)), null),
 
-    // -------- Planilha mãe / SharePoint corporativo --------
-    FonteMae = SharePoint.Files(
-        "https://grupoultracloud.sharepoint.com/teams/UG-ExcelnciaemFrotas",
-        [ApiVersion = 15]
-    ),
+    // -------- Planilha mãe / fonte otimizada --------
+    FonteMae = FontePlanilhaMae_Contents,
 
     ArquivoMae = Table.SelectRows(
         FonteMae,
@@ -77,10 +68,7 @@ let
         then error "Cabeçalho Placa não encontrado na coluna inicial da aba Base de Dados."
         else Table.Skip(BaseDados, LinhaCabecalho),
 
-    CabecalhosPromovidos0 = Table.PromoteHeaders(
-        LinhasAposCabecalho,
-        [PromoteAllScalars = true]
-    ),
+    CabecalhosPromovidos0 = Table.PromoteHeaders(LinhasAposCabecalho, [PromoteAllScalars = true]),
 
     CabecalhosPromovidos = Table.ReplaceErrorValues(
         CabecalhosPromovidos0,
@@ -94,20 +82,9 @@ let
 
     NomesColunas = Table.ColumnNames(FiltrarNordeste),
 
-    ColKmUltPrev = EncontrarColuna(
-        NomesColunas,
-        {"KM Ult. Prev.", "KM Últ. Prev.", "KM Ult Prev", "KM Últ Prev"}
-    ),
-
-    ColKmProxPrev = EncontrarColuna(
-        NomesColunas,
-        {"Km Prox Prev.", "KM Prox Prev.", "KM Próx. Prev.", "Km Próx. Prev.", "KM Prox Prev", "KM Próx Prev"}
-    ),
-
-    ColDataProxPrev = EncontrarColuna(
-        NomesColunas,
-        {"Data Próx. Prev.", "Data Prox. Prev.", "Data Próx Prev", "Data Prox Prev"}
-    ),
+    ColKmUltPrev = EncontrarColuna(NomesColunas, {"KM Ult. Prev.", "KM Últ. Prev.", "KM Ult Prev", "KM Últ Prev"}),
+    ColKmProxPrev = EncontrarColuna(NomesColunas, {"Km Prox Prev.", "KM Prox Prev.", "KM Próx. Prev.", "Km Próx. Prev.", "KM Prox Prev", "KM Próx Prev"}),
+    ColDataProxPrev = EncontrarColuna(NomesColunas, {"Data Próx. Prev.", "Data Prox. Prev.", "Data Próx Prev", "Data Prox Prev"}),
 
     AddKmUltPrev = Table.AddColumn(
         FiltrarNordeste,
@@ -133,10 +110,10 @@ let
     SelecionarMae = Table.SelectColumns(
         AddDataProxPrev,
         {
+            "Núcleo",
+            "Filial",
             "Placa",
             "Frota",
-            "Filial",
-            "Núcleo",
             "KM Últ. Prev. (Normalizado)",
             "KM Próx. Prev. (Normalizado)",
             "Data Próx. Prev. (Normalizada)"
@@ -153,25 +130,12 @@ let
         }
     ),
 
-    NormalizarPlacaMae = Table.TransformColumns(
-        RenomearMae,
-        {{"Placa", each TextoLimpo(_), type text}}
-    ),
-
-    FiltrarPlacasValidas = Table.SelectRows(
-        NormalizarPlacaMae,
-        each [Placa] <> null and [Placa] <> ""
-    ),
-
+    NormalizarPlacaMae = Table.TransformColumns(RenomearMae, {{"Placa", each TextoLimpo(_), type text}}),
+    FiltrarPlacasValidas = Table.SelectRows(NormalizarPlacaMae, each [Placa] <> null and [Placa] <> ""),
     OrdenarMae = Table.Sort(FiltrarPlacasValidas, {{"Placa", Order.Ascending}}),
     MaeUmaLinhaPorPlaca = Table.Distinct(Table.Buffer(OrdenarMae), {"Placa"}),
 
-    // -------- MaxTrack já carregado no arquivo --------
-    MaxTrackBase = Table.SelectColumns(
-        MaxTrack,
-        {"PLACA", "ODOMETRO"},
-        MissingField.UseNull
-    ),
+    MaxTrackBase = Table.SelectColumns(MaxTrack, {"PLACA", "ODOMETRO"}, MissingField.UseNull),
 
     NormalizarMaxTrack = Table.TransformColumns(
         MaxTrackBase,
@@ -181,57 +145,30 @@ let
         }
     ),
 
-    MaxTrackValido = Table.SelectRows(
-        NormalizarMaxTrack,
-        each [PLACA] <> null and [PLACA] <> ""
-    ),
+    MaxTrackValido = Table.SelectRows(NormalizarMaxTrack, each [PLACA] <> null and [PLACA] <> ""),
+    MaxTrackUmaLinhaPorPlaca = Table.Distinct(Table.Buffer(Table.Sort(MaxTrackValido, {{"PLACA", Order.Ascending}})), {"PLACA"}),
 
-    MaxTrackUmaLinhaPorPlaca = Table.Distinct(
-        Table.Buffer(Table.Sort(MaxTrackValido, {{"PLACA", Order.Ascending}})),
-        {"PLACA"}
-    ),
+    MergeMaxTrack = Table.NestedJoin(MaeUmaLinhaPorPlaca, {"Placa"}, MaxTrackUmaLinhaPorPlaca, {"PLACA"}, "MaxTrack", JoinKind.LeftOuter),
+    ExpandirMaxTrack = Table.ExpandTableColumn(MergeMaxTrack, "MaxTrack", {"ODOMETRO"}, {"KM Atual"}),
 
-    MergeMaxTrack = Table.NestedJoin(
-        MaeUmaLinhaPorPlaca,
-        {"Placa"},
-        MaxTrackUmaLinhaPorPlaca,
-        {"PLACA"},
-        "MaxTrack",
-        JoinKind.LeftOuter
-    ),
-
-    ExpandirMaxTrack = Table.ExpandTableColumn(
-        MergeMaxTrack,
-        "MaxTrack",
-        {"ODOMETRO"},
-        {"KM Atual"}
-    ),
-
-    // -------- Cálculos operacionais --------
     AddKmPercorrido = Table.AddColumn(
         ExpandirMaxTrack,
         "KM desde Últ. Prev.",
-        each if [KM Atual] = null or [#"KM Últ. Prev."] = null
-             then null
-             else [KM Atual] - [#"KM Últ. Prev."],
+        each if [KM Atual] = null or [#"KM Últ. Prev."] = null then null else [KM Atual] - [#"KM Últ. Prev."],
         type nullable number
     ),
 
     AddIntervaloPlanejado = Table.AddColumn(
         AddKmPercorrido,
         "Intervalo Planejado",
-        each if [#"KM Próx. Prev."] = null or [#"KM Últ. Prev."] = null
-             then null
-             else [#"KM Próx. Prev."] - [#"KM Últ. Prev."],
+        each if [#"KM Próx. Prev."] = null or [#"KM Últ. Prev."] = null then null else [#"KM Próx. Prev."] - [#"KM Últ. Prev."],
         type nullable number
     ),
 
     AddKmRestante = Table.AddColumn(
         AddIntervaloPlanejado,
         "KM Restante",
-        each if [#"KM Próx. Prev."] = null or [KM Atual] = null
-             then null
-             else [#"KM Próx. Prev."] - [KM Atual],
+        each if [#"KM Próx. Prev."] = null or [KM Atual] = null then null else [#"KM Próx. Prev."] - [KM Atual],
         type nullable number
     ),
 
@@ -252,9 +189,7 @@ let
     AddDiasData = Table.AddColumn(
         AddFaixaKm,
         "Dias para a data",
-        each if [#"Data Próx. Prev."] = null
-             then null
-             else Duration.Days([#"Data Próx. Prev."] - DataReferencia),
+        each if [#"Data Próx. Prev."] = null then null else Duration.Days([#"Data Próx. Prev."] - DataReferencia),
         Int64.Type
     ),
 
@@ -302,8 +237,7 @@ let
     AddMesAno = Table.AddColumn(
         AddPrioridade,
         "Mês-Ano",
-        each if [#"Data Próx. Prev."] = null
-             then null
+        each if [#"Data Próx. Prev."] = null then null
              else Date.ToText([#"Data Próx. Prev."], "yyyy-MM", "pt-BR")
                   & " "
                   & Text.Proper(Text.Replace(Date.ToText([#"Data Próx. Prev."], "MMM", "pt-BR"), ".", "")),
@@ -323,20 +257,15 @@ let
         type text
     ),
 
-    AddDataReferencia = Table.AddColumn(
-        AddIntegridade,
-        "Data referência",
-        each DataReferencia,
-        type date
-    ),
+    AddDataReferencia = Table.AddColumn(AddIntegridade, "Data referência", each DataReferencia, type date),
 
     Reordenar = Table.ReorderColumns(
         AddDataReferencia,
         {
-            "Placa",
-            "Frota",
             "Núcleo",
             "Filial",
+            "Placa",
+            "Frota",
             "KM Atual",
             "KM Últ. Prev.",
             "KM desde Últ. Prev.",
