@@ -1,4 +1,4 @@
-# Implementação Visual — Ações Operacionais
+# Implementação Visual — Controle de Frotas Nordeste
 
 Este arquivo transforma a especificação visual em um layout concreto para montar no Excel depois que as consultas estiverem validadas.
 
@@ -65,7 +65,7 @@ Colunas técnicas (`ORDEM GERAL`, `MÉTRICA DIAS`, `ORIGEM`) podem ficar no fina
 
 Congelar painéis acima da linha 9.
 
-## Segmentadores
+## Segmentadores da página principal
 
 Posicionar à direita da tabela, começando aproximadamente na coluna `O`:
 
@@ -99,11 +99,13 @@ Usar formatação condicional na coluna `PRIORIDADE` e, se possível, na linha:
 
 `INTEGRIDADE <> "OK"` sempre deve se destacar, mesmo quando a prioridade não for urgente.
 
-## Atualização Mãe
+## Aba `Atualização Mãe`
+
+Esta passa a ser a página de consulta rápida para PROCV/XLOOKUP e substitui, após validação, as sete páginas simples antigas.
 
 Carregar `AtualizacaoMae` como tabela `tbAtualizacaoMae`.
 
-A disposição deve priorizar o PROCV/XLOOKUP:
+### Ordem das colunas
 
 1. Placa
 2. Frota
@@ -118,21 +120,129 @@ A disposição deve priorizar o PROCV/XLOOKUP:
 11. Documento Mano/Ter mais próximo
 12. CRLV
 13. Integridade
+14. Documentos faltantes
+15. Documentos duplicados
 
-Como essa aba é operacional e não um dashboard, não precisa de cartões.
+### Segmentadores
 
-Segmentadores opcionais:
+Prioridade:
 
 - NUCLEO
 - Documento Mano/Ter mais próximo
 - Integridade
 - Placa
 
+O segmentador `Documento Mano/Ter mais próximo` resolve diretamente o uso solicitado: selecionar `Termômetro`, `Manômetro Vertical` ou `Manômetro Horizontal` e visualizar apenas as placas em que aquele item é o primeiro dos três a vencer.
+
+A data correta para o campo `Mano/Ter` da planilha mãe permanece na coluna `Mano/Ter`, portanto o filtro visual não muda a lógica do PROCV/XLOOKUP.
+
+### Formatação
+
+- datas no padrão `dd/mm/aaaa`;
+- `Integridade = OK` discreto;
+- faltante/duplicado destacado;
+- congelar cabeçalho;
+- não criar cartões nessa página.
+
+## Mano-Ter e Medidor — decisão de simplificação
+
+Durante a validação, as páginas `Mano-Ter` e `Medidor` podem continuar existindo.
+
+Depois da comparação, porém, a estrutura preferida é usar `Atualização Mãe` como página única, porque ela já contém:
+
+- Medidor Mássico;
+- Mano/Ter consolidado;
+- Documento Mano/Ter mais próximo;
+- demais documentos usados no PROCV/XLOOKUP.
+
+Se os segmentadores da `Atualização Mãe` forem suficientes no uso real, `ManoTer` e `Medidor` podem deixar de ser carregadas como páginas. Isso reduz duplicação visual e também reduz trabalho de refresh.
+
+## Preventiva Rodante
+
+Página detalhada própria.
+
+Colunas principais:
+
+1. Placa
+2. Frota
+3. Núcleo
+4. KM Atual
+5. KM Últ. Prev.
+6. KM Próx. Prev.
+7. KM Restante
+8. Faixa KM
+9. Data Próx. Prev.
+10. Dias para a data
+11. Situação Geral
+12. Integridade
+
+Segmentadores:
+
+- Núcleo
+- Situação Geral
+- Faixa KM
+- Mês-Ano
+- Integridade
+- Placa
+
+`KM Restante`, `Data Próx. Prev.` e `Situação Geral` devem receber maior destaque visual.
+
+## SuasTrans
+
+Manter a página atual, incluindo sua tabela verde e os segmentadores azuis, porque já é usada para os prints operacionais.
+
+Não substituir pela `DocumentosOperacionais`.
+
+`DocumentosOperacionais` fica como consulta auxiliar/somente conexão alimentando `AcoesOperacionais`.
+
 ## OS Operacional
 
 Depois da comparação com a aba Tableu atual, carregar `OSOperacional` em uma página visível e deixar a consulta `Tableu` como somente conexão.
 
 A consulta `Tableu` continua obrigatória como staging; apenas a aba deixa de ser necessária.
+
+Segmentadores recomendados:
+
+- NUCLEO
+- AÇÃO OPERACIONAL
+- STATUS
+- RECORRENCIA
+- PERÍODO
+- PLACA
+
+A coluna `AÇÃO OPERACIONAL` deve ficar próxima do `STATUS`, para deixar imediatamente visível:
+
+- COMP → FECHAR NO MÁXIMO
+- APROG → COBRAR MECÂNICA
+- FECHAR → SEM AÇÃO
+
+## Qualidade dos Dados
+
+Página discreta de exceções.
+
+Segmentadores opcionais:
+
+- Gravidade
+- Origem
+- NUCLEO
+
+Quando a base estiver íntegra, a tabela deve ficar vazia ou quase vazia.
+
+## Estrutura visual final preferida
+
+1. Ações Operacionais
+2. Preventiva Rodante
+3. SuasTrans
+4. OS Operacional
+5. Atualização Mãe
+6. Qualidade dos Dados
+
+Opcionalmente, durante transição:
+
+7. Mano-Ter
+8. Medidor
+
+Essa redução é intencional: menos páginas duplicadas, menos consultas carregadas e mais clareza para o trabalho diário.
 
 ## O que não fazer
 
