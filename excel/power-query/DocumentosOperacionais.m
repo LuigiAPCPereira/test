@@ -1,10 +1,6 @@
 let
     // ============================================================
     // DOCUMENTOS OPERACIONAIS — SUASTRANS
-    //
-    // Reaproveita a consulta SuasTrans já existente e acrescenta
-    // campos de apoio para execução diária e segmentação.
-    // Não altera o Status original calculado pela consulta SuasTrans.
     // ============================================================
 
     DataReferencia = Date.From(DateTime.FixedLocalNow()),
@@ -36,54 +32,13 @@ let
     ColValidade = EncontrarColuna(Nomes, {"Validade", "VALIDADE"}),
     ColStatus = EncontrarColuna(Nomes, {"Status", "STATUS"}),
 
-    AddPlaca = Table.AddColumn(
-        Fonte,
-        "OP_PLACA",
-        each if ColPlaca = null then null else TextoUpper(Record.FieldOrDefault(_, ColPlaca, null)),
-        type nullable text
-    ),
-
-    AddFrota = Table.AddColumn(
-        AddPlaca,
-        "OP_FROTA",
-        each if ColFrota = null then null else TextoUpper(Record.FieldOrDefault(_, ColFrota, null)),
-        type nullable text
-    ),
-
-    AddNucleo = Table.AddColumn(
-        AddFrota,
-        "OP_NUCLEO",
-        each if ColNucleo = null then null else Texto(Record.FieldOrDefault(_, ColNucleo, null)),
-        type nullable text
-    ),
-
-    AddFilial = Table.AddColumn(
-        AddNucleo,
-        "OP_FILIAL",
-        each if ColFilial = null then null else Texto(Record.FieldOrDefault(_, ColFilial, null)),
-        type nullable text
-    ),
-
-    AddTipo = Table.AddColumn(
-        AddFilial,
-        "OP_TIPO",
-        each if ColTipo = null then null else Texto(Record.FieldOrDefault(_, ColTipo, null)),
-        type nullable text
-    ),
-
-    AddValidade = Table.AddColumn(
-        AddTipo,
-        "OP_VALIDADE",
-        each if ColValidade = null then null else DataSegura(Record.FieldOrDefault(_, ColValidade, null)),
-        type nullable date
-    ),
-
-    AddStatus = Table.AddColumn(
-        AddValidade,
-        "OP_STATUS",
-        each if ColStatus = null then null else TextoUpper(Record.FieldOrDefault(_, ColStatus, null)),
-        type nullable text
-    ),
+    AddPlaca = Table.AddColumn(Fonte, "OP_PLACA", each if ColPlaca = null then null else TextoUpper(Record.FieldOrDefault(_, ColPlaca, null)), type nullable text),
+    AddFrota = Table.AddColumn(AddPlaca, "OP_FROTA", each if ColFrota = null then null else TextoUpper(Record.FieldOrDefault(_, ColFrota, null)), type nullable text),
+    AddNucleo = Table.AddColumn(AddFrota, "OP_NUCLEO", each if ColNucleo = null then null else Texto(Record.FieldOrDefault(_, ColNucleo, null)), type nullable text),
+    AddFilial = Table.AddColumn(AddNucleo, "OP_FILIAL", each if ColFilial = null then null else Texto(Record.FieldOrDefault(_, ColFilial, null)), type nullable text),
+    AddTipo = Table.AddColumn(AddFilial, "OP_TIPO", each if ColTipo = null then null else Texto(Record.FieldOrDefault(_, ColTipo, null)), type nullable text),
+    AddValidade = Table.AddColumn(AddTipo, "OP_VALIDADE", each if ColValidade = null then null else DataSegura(Record.FieldOrDefault(_, ColValidade, null)), type nullable date),
+    AddStatus = Table.AddColumn(AddValidade, "OP_STATUS", each if ColStatus = null then null else TextoUpper(Record.FieldOrDefault(_, ColStatus, null)), type nullable text),
 
     AddDias = Table.AddColumn(
         AddStatus,
@@ -149,17 +104,12 @@ let
         type text
     ),
 
-    AddReferencia = Table.AddColumn(
-        AddIntegridade,
-        "DATA REFERÊNCIA",
-        each DataReferencia,
-        type date
-    ),
+    AddReferencia = Table.AddColumn(AddIntegridade, "DATA REFERÊNCIA", each DataReferencia, type date),
 
     Selecionar = Table.SelectColumns(
         AddReferencia,
         {
-            "OP_PLACA", "OP_FROTA", "OP_NUCLEO", "OP_FILIAL", "OP_TIPO",
+            "OP_NUCLEO", "OP_FILIAL", "OP_PLACA", "OP_FROTA", "OP_TIPO",
             "OP_VALIDADE", "OP_STATUS", "DIAS PARA VENCER", "AÇÃO OPERACIONAL",
             "ORDEM AÇÃO", "PERÍODO VALIDADE", "MÊS-ANO", "INTEGRIDADE", "DATA REFERÊNCIA"
         },
@@ -169,10 +119,10 @@ let
     Renomear = Table.RenameColumns(
         Selecionar,
         {
-            {"OP_PLACA", "PLACA"},
-            {"OP_FROTA", "FROTA"},
             {"OP_NUCLEO", "NUCLEO"},
             {"OP_FILIAL", "FILIAL"},
+            {"OP_PLACA", "PLACA"},
+            {"OP_FROTA", "FROTA"},
             {"OP_TIPO", "TIPO DE DOCUMENTO"},
             {"OP_VALIDADE", "VALIDADE"},
             {"OP_STATUS", "STATUS"}
