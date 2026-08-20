@@ -29,7 +29,7 @@ let
                         "Ê", "E"),
                     "É", "E"),
                 "È", "E"),
-            T2 = if T1 = null then null else Text.Remove(T1, {" ", "_", "-", ".", "/", "\\", "º", "ª"})
+            T2 = if T1 = null then null else Text.Remove(T1, {" ", "_", "-", ".", "/", "º", "ª"})
         in
             T2,
 
