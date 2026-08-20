@@ -1,10 +1,6 @@
 let
     // ============================================================
     // OS OPERACIONAL — TABLEAU / MÁXIMO
-    //
-    // Fonte: consulta Tableu já existente.
-    // Mantém todos os dados e adiciona apenas colunas de apoio para
-    // segmentação e execução do trabalho diário.
     // ============================================================
 
     DataReferencia = Date.From(DateTime.FixedLocalNow()),
@@ -81,15 +77,16 @@ let
         Int64.Type
     ),
 
-    AddReferencia = Table.AddColumn(
-        AddDias,
-        "DATA REFERÊNCIA",
-        each DataReferencia,
-        type date
+    AddReferencia = Table.AddColumn(AddDias, "DATA REFERÊNCIA", each DataReferencia, type date),
+
+    Reordenar = Table.ReorderColumns(
+        AddReferencia,
+        {"NUCLEO", "FILIAL", "PLACA"},
+        MissingField.Ignore
     ),
 
     Ordenar = Table.Sort(
-        AddReferencia,
+        Reordenar,
         {
             {"ORDEM AÇÃO", Order.Ascending},
             {"DATA OS", Order.Ascending},
