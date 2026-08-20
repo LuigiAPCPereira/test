@@ -152,14 +152,14 @@ let
     Reordenar = Table.ReorderColumns(
         AddReferencia,
         {
+            "NUCLEO",
+            "Filial",
             "Placa",
             "Validade Medidor",
             "Status",
             "Prioridade",
             "Dias para vencer",
             "Mês-Ano",
-            "NUCLEO",
-            "Filial",
             "Frota",
             "Integridade",
             "Qtd registros",
