@@ -6,13 +6,10 @@ let
     // - PreventivaRodante
     // - DocumentosOperacionais
     // - OSOperacional
-    //
-    // ManoTer e Medidor permanecem em páginas próprias para PROCV;
-    // seus vencimentos já estão representados pela base documental.
     // ============================================================
 
     ColunasPadrao = {
-        "ORDEM GERAL", "PRIORIDADE", "NUCLEO", "FILIAL", "PLACA", "FROTA",
+        "NUCLEO", "FILIAL", "PLACA", "ORDEM GERAL", "PRIORIDADE", "FROTA",
         "CATEGORIA", "ITEM", "SITUAÇÃO", "AÇÃO", "DATA", "DIAS",
         "MÉTRICA DIAS", "KM RESTANTE", "REFERÊNCIA", "MÊS-ANO",
         "ORIGEM", "INTEGRIDADE"
