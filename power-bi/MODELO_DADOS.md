@@ -123,8 +123,19 @@ Campos previstos:
 - `Validade`
 - `Status`
 - `DiasParaVencer`
+- `Restritivo`
 - `DataReferencia`
 - metadados de origem úteis à rastreabilidade
+
+### Restritivo
+
+`Restritivo` é atributo de negócio, não apenas metadado de origem.
+
+Semântica operacional registrada:
+
+- identifica documentos cujo vencimento representa risco elevado em fiscalização;
+- documento restritivo vencido deve receber prioridade operacional superior a um documento vencido sem caráter restritivo;
+- o campo deverá ser utilizável em indicadores, filtros, alertas e na futura `FilaOperacional`.
 
 A camada raw/normalizada anterior a esta fato deve preservar registros duplicados. A escolha do registro documental corrente só ocorre depois que a qualidade puder avaliar os registros originais.
 
@@ -241,6 +252,8 @@ Ela poderá combinar itens acionáveis de:
 - `FactOS`
 
 Os KPIs de gestão devem ser calculados diretamente nas fatos de domínio. A fila serve para navegação, priorização e exibição integrada.
+
+Documentos vencidos com `Restritivo` ativo devem poder receber prioridade operacional superior na fila.
 
 ## Relacionamentos
 
