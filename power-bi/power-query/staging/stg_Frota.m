@@ -9,8 +9,9 @@ let
     // IMPORTANTE:
     // - não aplica Table.Distinct;
     // - não cria chave substituta;
-    // - não oculta duplicidades;
-    // - serve de base para validar unicidade antes da DimFrota.
+    // - não elimina placa/frota vazia;
+    // - preserva duplicidades reais para o Gate 2B;
+    // - expõe colunas auxiliares de qualidade antes da DimFrota.
     // ============================================================
 
     TextoTrim = (valor as nullable any) as nullable text =>
@@ -22,12 +23,25 @@ let
         in
             if T = null then null else Text.Upper(T),
 
+    NormalizarPlaca = (valor as nullable any) as nullable text =>
+        let
+            T = TextoUpper(valor),
+            Limpa = if T = null then null else Text.Remove(T, {" ", "-", ".", "/"})
+        in
+            if Limpa = null or Limpa = "" then null else Limpa,
+
+    NormalizarFrota = (valor as nullable any) as nullable text =>
+        let
+            T = TextoUpper(valor)
+        in
+            if T = null or T = "" then null else T,
+
     Fonte = stg_SP_PlanilhaMae,
 
     ArquivosMae = Table.SelectRows(
         Fonte,
         each
-            [Name] = "Programações Paradas Frotas.xlsm"
+            Text.From(Record.FieldOrDefault(_, "Name", "")) = "Programações Paradas Frotas.xlsm"
             and Value.Is(Record.FieldOrDefault(_, "Content", null), type binary)
     ),
 
@@ -60,6 +74,12 @@ let
                 "Aba não encontrada",
                 "A aba 'Base de Dados' não foi encontrada em Programações Paradas Frotas.xlsm.",
                 null
+            )
+        else if Table.RowCount(AbaBase) > 1 then
+            error Error.Record(
+                "Aba ambígua",
+                "Mais de uma aba 'Base de Dados' foi encontrada.",
+                [Quantidade = Table.RowCount(AbaBase)]
             )
         else
             AbaBase{0}[Data],
@@ -119,7 +139,7 @@ let
 
     FiltrarNordeste = Table.SelectRows(
         ValidarEstrutura,
-        each TextoTrim([Mercado]) = "Empresarial Nordeste"
+        each try TextoTrim([Mercado]) = "Empresarial Nordeste" otherwise false
     ),
 
     SelecionarColunas = Table.SelectColumns(
@@ -134,14 +154,121 @@ let
             {"Núcleo", each TextoTrim(_), type nullable text},
             {"Filial", each TextoTrim(_), type nullable text},
             {"Placa", each TextoUpper(_), type nullable text},
-            {"Frota", each TextoTrim(_), type nullable text},
+            {"Frota", each TextoUpper(_), type nullable text},
             {"Proprietário", each TextoTrim(_), type nullable text},
             {"Mercado", each TextoTrim(_), type nullable text}
         }
     ),
 
-    Resultado = Table.Sort(
+    AddPlacaNormalizada = Table.AddColumn(
         NormalizarTexto,
+        "Placa Normalizada",
+        each NormalizarPlaca([Placa]),
+        type nullable text
+    ),
+
+    AddFrotaNormalizada = Table.AddColumn(
+        AddPlacaNormalizada,
+        "Frota Normalizada",
+        each NormalizarFrota([Frota]),
+        type nullable text
+    ),
+
+    ContagemPlaca = Table.Group(
+        Table.SelectRows(AddFrotaNormalizada, each [#"Placa Normalizada"] <> null),
+        {"Placa Normalizada"},
+        {{"Qtd Placa", each Table.RowCount(_), Int64.Type}}
+    ),
+
+    MergeContagemPlaca = Table.NestedJoin(
+        AddFrotaNormalizada,
+        {"Placa Normalizada"},
+        ContagemPlaca,
+        {"Placa Normalizada"},
+        "AuditoriaPlaca",
+        JoinKind.LeftOuter
+    ),
+
+    ExpandContagemPlaca = Table.ExpandTableColumn(
+        MergeContagemPlaca,
+        "AuditoriaPlaca",
+        {"Qtd Placa"},
+        {"Qtd Placa"}
+    ),
+
+    ContagemFrota = Table.Group(
+        Table.SelectRows(ExpandContagemPlaca, each [#"Frota Normalizada"] <> null),
+        {"Frota Normalizada"},
+        {{"Qtd Frota", each Table.RowCount(_), Int64.Type}}
+    ),
+
+    MergeContagemFrota = Table.NestedJoin(
+        ExpandContagemPlaca,
+        {"Frota Normalizada"},
+        ContagemFrota,
+        {"Frota Normalizada"},
+        "AuditoriaFrota",
+        JoinKind.LeftOuter
+    ),
+
+    ExpandContagemFrota = Table.ExpandTableColumn(
+        MergeContagemFrota,
+        "AuditoriaFrota",
+        {"Qtd Frota"},
+        {"Qtd Frota"}
+    ),
+
+    AddQualidadePlaca = Table.AddColumn(
+        ExpandContagemFrota,
+        "Qualidade Placa",
+        each
+            if [#"Placa Normalizada"] = null then "PLACA VAZIA"
+            else if [#"Qtd Placa"] > 1 then "PLACA DUPLICADA"
+            else "OK",
+        type text
+    ),
+
+    AddQualidadeFrota = Table.AddColumn(
+        AddQualidadePlaca,
+        "Qualidade Frota",
+        each
+            if [#"Frota Normalizada"] = null then "FROTA VAZIA"
+            else if [#"Qtd Frota"] > 1 then "FROTA DUPLICADA"
+            else "OK",
+        type text
+    ),
+
+    AddIntegridade = Table.AddColumn(
+        AddQualidadeFrota,
+        "Integridade",
+        each
+            if [#"Qualidade Placa"] <> "OK" and [#"Qualidade Frota"] <> "OK" then
+                [#"Qualidade Placa"] & " + " & [#"Qualidade Frota"]
+            else if [#"Qualidade Placa"] <> "OK" then [#"Qualidade Placa"]
+            else if [#"Qualidade Frota"] <> "OK" then [#"Qualidade Frota"]
+            else "OK",
+        type text
+    ),
+
+    Resultado = Table.Sort(
+        Table.ReorderColumns(
+            AddIntegridade,
+            {
+                "Núcleo",
+                "Filial",
+                "Placa",
+                "Frota",
+                "Proprietário",
+                "Mercado",
+                "Placa Normalizada",
+                "Frota Normalizada",
+                "Qtd Placa",
+                "Qtd Frota",
+                "Qualidade Placa",
+                "Qualidade Frota",
+                "Integridade"
+            }
+        ),
         {
             {"Núcleo", Order.Ascending},
             {"Filial", Order.Ascending},
