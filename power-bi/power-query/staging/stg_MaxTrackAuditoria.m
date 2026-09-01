@@ -4,58 +4,94 @@ let
     // Origem: stg_Frota + stg_MaxTrack
     // Granularidade: 1 linha por veículo oficial
     // Objetivo: medir cobertura, validade do odômetro e duplicidades.
+    //
+    // A detecção abaixo é tolerante às variações reais de cabeçalho.
+    // Se a camada anterior expuser apenas ODOMETRO_BRUTO, a própria
+    // auditoria converte o valor para KM antes de agrupar.
     // ============================================================
 
     NormalizarNome = (valor as nullable any) as nullable text =>
         let
             T0 = if valor = null then null else Text.Upper(Text.Trim(Text.From(valor))),
             T1 = if T0 = null then null else
-                Text.Replace(
-                    Text.Replace(
-                        Text.Replace(
-                            Text.Replace(
-                                Text.Replace(
-                                    Text.Replace(
-                                        Text.Replace(
-                                            Text.Replace(
-                                                Text.Replace(
-                                                    Text.Replace(T0, "Ô", "O"),
-                                                "Õ", "O"),
-                                            "Ó", "O"),
-                                        "Ò", "O"),
-                                    "Ö", "O"),
-                                "Ê", "E"),
-                            "É", "E"),
-                        "È", "E"),
-                    "Á", "A"),
-                "Í", "I"),
-            T2 = if T1 = null then null else Text.Remove(T1, {" ", "_", "-", ".", "/", "º", "ª"})
+                List.Accumulate(
+                    {
+                        {"Á", "A"}, {"À", "A"}, {"Â", "A"}, {"Ã", "A"}, {"Ä", "A"},
+                        {"É", "E"}, {"È", "E"}, {"Ê", "E"}, {"Ë", "E"},
+                        {"Í", "I"}, {"Ì", "I"}, {"Î", "I"}, {"Ï", "I"},
+                        {"Ó", "O"}, {"Ò", "O"}, {"Ô", "O"}, {"Õ", "O"}, {"Ö", "O"},
+                        {"Ú", "U"}, {"Ù", "U"}, {"Û", "U"}, {"Ü", "U"},
+                        {"Ç", "C"}
+                    },
+                    T0,
+                    (estado, par) => Text.Replace(estado, par{0}, par{1})
+                ),
+            T2 = if T1 = null then null else Text.Remove(T1, {" ", "_", "-", ".", "/", "º", "ª", "(" , ")"})
         in
             T2,
 
-    FonteMaxTrack0 = stg_MaxTrack,
-    NomesColunas = Table.ColumnNames(FonteMaxTrack0),
+    NormalizarPlaca = (valor as nullable any) as nullable text =>
+        let
+            T = if valor = null then null else Text.Upper(Text.Trim(Text.From(valor))),
+            Limpa = if T = null then null else Text.Remove(T, {" ", "-", ".", "/"})
+        in
+            if Limpa = null or Limpa = "" then null else Limpa,
 
-    ColPlaca = List.First(
-        List.Select(
-            NomesColunas,
-            each List.Contains({"PLACANORMALIZADA", "PLACA"}, NormalizarNome(_))
-        ),
-        null
+    ConverterOdometro = (valor as nullable any, nomeColuna as text) as nullable number =>
+        let
+            NomeNormalizado = NormalizarNome(nomeColuna),
+            TextoValor = if valor = null then null else Text.Trim(Text.From(valor)),
+            Digitos = if TextoValor = null then null else Text.Select(TextoValor, {"0".."9"}),
+            Resultado =
+                if valor = null then
+                    null
+                else if Text.Contains(NomeNormalizado, "BRUTO") then
+                    let
+                        SemTresFinais =
+                            if Digitos = null or Text.Length(Digitos) <= 3 then null
+                            else Text.Start(Digitos, Text.Length(Digitos) - 3)
+                    in
+                        try Number.FromText(SemTresFinais, "pt-BR") otherwise null
+                else
+                    try Number.From(valor)
+                    otherwise try Number.FromText(TextoValor, "pt-BR")
+                    otherwise try Number.FromText(Digitos, "pt-BR")
+                    otherwise null
+        in
+            Resultado,
+
+    FonteMaxTrack = stg_MaxTrack,
+    NomesColunas = Table.ColumnNames(FonteMaxTrack),
+
+    CandidatosPlacaNormalizada = List.Select(NomesColunas, each NormalizarNome(_) = "PLACANORMALIZADA"),
+    CandidatosPlaca = List.Select(NomesColunas, each NormalizarNome(_) = "PLACA"),
+    ColPlaca = List.First(List.Combine({CandidatosPlacaNormalizada, CandidatosPlaca}), null),
+
+    CandidatosOdometroKM = List.Select(NomesColunas, each NormalizarNome(_) = "ODOMETROKM"),
+    CandidatosOdometroComKM = List.Select(
+        NomesColunas,
+        each Text.Contains(NormalizarNome(_), "ODOMETRO")
+            and Text.Contains(NormalizarNome(_), "KM")
+            and not Text.Contains(NormalizarNome(_), "BRUTO")
     ),
+    CandidatosOdometroExato = List.Select(NomesColunas, each NormalizarNome(_) = "ODOMETRO"),
+    CandidatosOdometroBruto = List.Select(NomesColunas, each Text.Contains(NormalizarNome(_), "ODOMETRO") and Text.Contains(NormalizarNome(_), "BRUTO")),
+    CandidatosOdometroQualquer = List.Select(NomesColunas, each Text.Contains(NormalizarNome(_), "ODOMETRO")),
 
     ColOdometro = List.First(
-        List.Select(
-            NomesColunas,
-            each List.Contains({"ODOMETROKM", "ODOMETRO"}, NormalizarNome(_))
+        List.Distinct(
+            List.Combine({
+                CandidatosOdometroKM,
+                CandidatosOdometroComKM,
+                CandidatosOdometroExato,
+                CandidatosOdometroBruto,
+                CandidatosOdometroQualquer
+            })
         ),
         null
     ),
 
-    ColSourceFile = List.First(
-        List.Select(NomesColunas, each NormalizarNome(_) = "SOURCEFILE"),
-        null
-    ),
+    ColSourceFile = List.First(List.Select(NomesColunas, each NormalizarNome(_) = "SOURCEFILE"), null),
 
     ValidarEstrutura =
         if ColPlaca = null or ColOdometro = null then
@@ -69,42 +105,45 @@ let
                 ]
             )
         else
-            FonteMaxTrack0,
+            FonteMaxTrack,
 
-    Renomeacoes = List.RemoveNulls({
-        if ColPlaca <> "Placa Normalizada" then {ColPlaca, "Placa Normalizada"} else null,
-        if ColOdometro <> "Odometro KM" then {ColOdometro, "Odometro KM"} else null,
-        if ColSourceFile <> null and ColSourceFile <> "SourceFile" then {ColSourceFile, "SourceFile"} else null
-    }),
+    AddPlacaAudit = Table.AddColumn(
+        ValidarEstrutura,
+        "Placa Audit",
+        each NormalizarPlaca(Record.Field(_, ColPlaca)),
+        type nullable text
+    ),
 
-    FonteMaxTrack1 = Table.RenameColumns(ValidarEstrutura, Renomeacoes, MissingField.Ignore),
+    AddOdometroAudit = Table.AddColumn(
+        AddPlacaAudit,
+        "Odometro Audit KM",
+        each ConverterOdometro(Record.Field(_, ColOdometro), ColOdometro),
+        Int64.Type
+    ),
 
-    FonteMaxTrack =
-        if List.Contains(Table.ColumnNames(FonteMaxTrack1), "SourceFile") then
-            FonteMaxTrack1
+    AddSourceFileAudit =
+        if ColSourceFile <> null then
+            Table.AddColumn(
+                AddOdometroAudit,
+                "SourceFile Audit",
+                each try Text.From(Record.Field(_, ColSourceFile)) otherwise null,
+                type nullable text
+            )
         else
-            Table.AddColumn(FonteMaxTrack1, "SourceFile", each null, type nullable text),
+            Table.AddColumn(AddOdometroAudit, "SourceFile Audit", each null, type nullable text),
 
     ResumoMaxTrack = Table.Group(
-        FonteMaxTrack,
-        {"Placa Normalizada"},
+        AddSourceFileAudit,
+        {"Placa Audit"},
         {
             {"Qtd Registros MaxTrack", each Table.RowCount(_), Int64.Type},
-            {
-                "Qtd Odometros Válidos",
-                each List.Count(List.RemoveNulls(Table.Column(_, "Odometro KM"))),
-                Int64.Type
-            },
-            {
-                "Qtd Odometros Distintos",
-                each List.Count(List.Distinct(List.RemoveNulls(Table.Column(_, "Odometro KM")))),
-                Int64.Type
-            },
+            {"Qtd Odometros Válidos", each List.Count(List.RemoveNulls(Table.Column(_, "Odometro Audit KM"))), Int64.Type},
+            {"Qtd Odometros Distintos", each List.Count(List.Distinct(List.RemoveNulls(Table.Column(_, "Odometro Audit KM")))), Int64.Type},
             {
                 "Odometros KM",
                 each Text.Combine(
                     List.Transform(
-                        List.Sort(List.Distinct(List.RemoveNulls(Table.Column(_, "Odometro KM"))), Order.Descending),
+                        List.Sort(List.Distinct(List.RemoveNulls(Table.Column(_, "Odometro Audit KM"))), Order.Descending),
                         each Number.ToText(_, "0", "pt-BR")
                     ),
                     " | "
@@ -113,25 +152,29 @@ let
             },
             {
                 "Arquivos Fonte",
-                each Text.Combine(
-                    List.Sort(List.Distinct(List.RemoveNulls(Table.Column(_, "SourceFile")))),
-                    " | "
-                ),
+                each Text.Combine(List.Sort(List.Distinct(List.RemoveNulls(Table.Column(_, "SourceFile Audit")))), " | "),
                 type text
             }
         }
     ),
 
-    FrotaOficial = Table.SelectColumns(
+    FrotaOficial0 = Table.SelectColumns(
         stg_Frota,
         {"Núcleo", "Filial", "Placa", "Frota", "Placa Normalizada"}
     ),
 
+    FrotaOficial = Table.AddColumn(
+        FrotaOficial0,
+        "Placa Audit",
+        each NormalizarPlaca([Placa Normalizada]),
+        type nullable text
+    ),
+
     MergeResumo = Table.NestedJoin(
         FrotaOficial,
-        {"Placa Normalizada"},
+        {"Placa Audit"},
         ResumoMaxTrack,
-        {"Placa Normalizada"},
+        {"Placa Audit"},
         "MaxTrack",
         JoinKind.LeftOuter
     ),
@@ -139,20 +182,8 @@ let
     ExpandResumo = Table.ExpandTableColumn(
         MergeResumo,
         "MaxTrack",
-        {
-            "Qtd Registros MaxTrack",
-            "Qtd Odometros Válidos",
-            "Qtd Odometros Distintos",
-            "Odometros KM",
-            "Arquivos Fonte"
-        },
-        {
-            "Qtd Registros MaxTrack",
-            "Qtd Odometros Válidos",
-            "Qtd Odometros Distintos",
-            "Odometros KM",
-            "Arquivos Fonte"
-        }
+        {"Qtd Registros MaxTrack", "Qtd Odometros Válidos", "Qtd Odometros Distintos", "Odometros KM", "Arquivos Fonte"},
+        {"Qtd Registros MaxTrack", "Qtd Odometros Válidos", "Qtd Odometros Distintos", "Odometros KM", "Arquivos Fonte"}
     ),
 
     SubstituirContagensNulas = Table.ReplaceValue(
@@ -167,16 +198,11 @@ let
         SubstituirContagensNulas,
         "Classificação MaxTrack",
         each
-            if [Qtd Registros MaxTrack] = 0 then
-                "SEM REGISTRO MAXTRACK"
-            else if [Qtd Odometros Válidos] = 0 then
-                "ODOMETRO AUSENTE OU INVÁLIDO"
-            else if [Qtd Registros MaxTrack] > 1 and [Qtd Odometros Distintos] > 1 then
-                "DUPLICIDADE COM ODOMETROS DIFERENTES"
-            else if [Qtd Registros MaxTrack] > 1 then
-                "DUPLICIDADE MESMO ODOMETRO"
-            else
-                "OK",
+            if [Qtd Registros MaxTrack] = 0 then "SEM REGISTRO MAXTRACK"
+            else if [Qtd Odometros Válidos] = 0 then "ODOMETRO AUSENTE OU INVÁLIDO"
+            else if [Qtd Registros MaxTrack] > 1 and [Qtd Odometros Distintos] > 1 then "DUPLICIDADE COM ODOMETROS DIFERENTES"
+            else if [Qtd Registros MaxTrack] > 1 then "DUPLICIDADE MESMO ODOMETRO"
+            else "OK",
         type text
     ),
 
@@ -188,7 +214,7 @@ let
     ),
 
     Resultado = Table.Sort(
-        AddRequerRevisao,
+        Table.RemoveColumns(AddRequerRevisao, {"Placa Audit"}, MissingField.Ignore),
         {
             {"Classificação MaxTrack", Order.Ascending},
             {"Núcleo", Order.Ascending},
