@@ -9,7 +9,7 @@ SharePoint
   ↓
 stg_SP_*
   ↓
-stg_*Raw / stg_*Normalizado
+stg_*Raw / stg_*
   ↓
 Dim* / Fact*
 ```
@@ -40,17 +40,21 @@ Configuração recomendada no Power BI Desktop:
 
 ## Camada 2 — staging de conteúdo
 
-Consultas em construção:
+Consultas atuais/planejadas:
 
 - `stg_Frota`
 - `stg_SuaTransRaw`
-- `stg_DocumentosNormalizados`
+- `stg_Documentos`
 - `stg_MaxTrackRaw`
 - `stg_OSRaw`
 
-A camada raw deve preservar informação suficiente para auditoria. Em especial, `stg_SuaTransRaw` não deve deduplicar placa + documento antes que a qualidade possa inspecionar repetições.
+A camada raw deve preservar informação suficiente para auditoria. Em especial, `stg_SuaTransRaw` não deduplica placa + documento antes que a qualidade possa inspecionar repetições.
 
 `stg_SuaTransRaw` seleciona o export corrente para a V1, abre a primeira planilha válida, preserva os registros antes de filtros de negócio e adiciona metadados `SourceFile`, `SourceCreated` e `SourceModified` para rastreabilidade.
+
+`stg_Documentos` parte da raw, mantém somente registros de veículo, recorta os nove tipos documentais, cruza com a frota oficial pela placa normalizada e calcula a quantidade de ocorrências por `Placa + Tipo de Documento`. Ela ainda **não** escolhe um registro corrente e **não** executa `Table.Distinct`.
+
+A coluna `Multiplicidade` significa somente que há mais de uma ocorrência no export atual. A classificação entre renovação/histórico legítimo e duplicidade indevida depende da validação do Gate 2C.
 
 ## Camada 3 — modelo
 
