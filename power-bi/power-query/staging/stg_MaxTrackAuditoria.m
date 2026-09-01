@@ -6,23 +6,87 @@ let
     // Objetivo: medir cobertura, validade do odômetro e duplicidades.
     // ============================================================
 
-    FonteMaxTrack = stg_MaxTrack,
+    NormalizarNome = (valor as nullable any) as nullable text =>
+        let
+            T0 = if valor = null then null else Text.Upper(Text.Trim(Text.From(valor))),
+            T1 = if T0 = null then null else
+                Text.Replace(
+                    Text.Replace(
+                        Text.Replace(
+                            Text.Replace(
+                                Text.Replace(
+                                    Text.Replace(
+                                        Text.Replace(
+                                            Text.Replace(
+                                                Text.Replace(
+                                                    Text.Replace(T0, "Ô", "O"),
+                                                "Õ", "O"),
+                                            "Ó", "O"),
+                                        "Ò", "O"),
+                                    "Ö", "O"),
+                                "Ê", "E"),
+                            "É", "E"),
+                        "È", "E"),
+                    "Á", "A"),
+                "Í", "I"),
+            T2 = if T1 = null then null else Text.Remove(T1, {" ", "_", "-", ".", "/", "º", "ª"})
+        in
+            T2,
 
-    ColunasObrigatorias = {"Placa Normalizada", "Odometro KM", "SourceFile"},
-    ColunasFaltantes = List.Difference(ColunasObrigatorias, Table.ColumnNames(FonteMaxTrack)),
+    FonteMaxTrack0 = stg_MaxTrack,
+    NomesColunas = Table.ColumnNames(FonteMaxTrack0),
+
+    ColPlaca = List.First(
+        List.Select(
+            NomesColunas,
+            each List.Contains({"PLACANORMALIZADA", "PLACA"}, NormalizarNome(_))
+        ),
+        null
+    ),
+
+    ColOdometro = List.First(
+        List.Select(
+            NomesColunas,
+            each List.Contains({"ODOMETROKM", "ODOMETRO"}, NormalizarNome(_))
+        ),
+        null
+    ),
+
+    ColSourceFile = List.First(
+        List.Select(NomesColunas, each NormalizarNome(_) = "SOURCEFILE"),
+        null
+    ),
 
     ValidarEstrutura =
-        if List.Count(ColunasFaltantes) > 0 then
+        if ColPlaca = null or ColOdometro = null then
             error Error.Record(
                 "Estrutura MaxTrack inválida",
-                "stg_MaxTrack não contém todas as colunas necessárias para a auditoria.",
-                [ColunasFaltantes = ColunasFaltantes, ColunasEncontradas = Table.ColumnNames(FonteMaxTrack)]
+                "Não foi possível identificar as colunas de placa e odômetro em stg_MaxTrack.",
+                [
+                    ColunaPlacaDetectada = ColPlaca,
+                    ColunaOdometroDetectada = ColOdometro,
+                    ColunasEncontradas = NomesColunas
+                ]
             )
         else
-            FonteMaxTrack,
+            FonteMaxTrack0,
+
+    Renomeacoes = List.RemoveNulls({
+        if ColPlaca <> "Placa Normalizada" then {ColPlaca, "Placa Normalizada"} else null,
+        if ColOdometro <> "Odometro KM" then {ColOdometro, "Odometro KM"} else null,
+        if ColSourceFile <> null and ColSourceFile <> "SourceFile" then {ColSourceFile, "SourceFile"} else null
+    }),
+
+    FonteMaxTrack1 = Table.RenameColumns(ValidarEstrutura, Renomeacoes, MissingField.Ignore),
+
+    FonteMaxTrack =
+        if List.Contains(Table.ColumnNames(FonteMaxTrack1), "SourceFile") then
+            FonteMaxTrack1
+        else
+            Table.AddColumn(FonteMaxTrack1, "SourceFile", each null, type nullable text),
 
     ResumoMaxTrack = Table.Group(
-        ValidarEstrutura,
+        FonteMaxTrack,
         {"Placa Normalizada"},
         {
             {"Qtd Registros MaxTrack", each Table.RowCount(_), Int64.Type},
