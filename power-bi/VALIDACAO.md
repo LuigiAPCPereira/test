@@ -48,7 +48,7 @@ Com isso, `stg_Frota` está apta a servir de origem para a futura `DimFrota`.
 
 Validado no Power BI Desktop em 2026-09-01.
 
-Resultado informado:
+Resultado:
 
 - consulta abriu sem erro;
 - export corrente `Sisdocs.xlsx` foi lido;
@@ -74,44 +74,74 @@ A consulta:
 
 ### Evidência real de multiplicidade
 
-Amostra validada no Desktop para a placa `DKZ4571` / frota `F15794`:
+Amostra validada para a placa `DKZ4571` / frota `F15794`:
 
-- os nove documentos aparecem com `Qtd Registros Placa Documento = 3`;
+- os nove documentos aparecem com três ocorrências por placa + documento;
 - para cada documento da amostra, as três ocorrências têm a mesma validade;
-- as ocorrências vêm de três filiais SuaTrans diferentes: `FILIAL CAUCAIA`, `FILIAL MIRAMAR` e `FILIAL SÃO LUIS`;
-- portanto, essa amostra **não representa três renovações documentais**;
+- as ocorrências vêm de `FILIAL CAUCAIA`, `FILIAL MIRAMAR` e `FILIAL SÃO LUIS`;
+- a amostra não representa três renovações documentais;
 - trata-se de duplicidade de negócio entre filiais para a mesma placa + documento + validade.
 
-Esse resultado confirma que a deduplicação existente no fluxo Excel escondia uma condição que precisa permanecer auditável no Power BI.
+### 2C.3 — `stg_DocumentosAuditoria` — PASS
 
-### 2C.3 — `stg_DocumentosAuditoria` — AGUARDANDO VALIDAÇÃO
+Validado no Power BI Desktop em 2026-09-01.
 
-Consulta criada para agrupar `Placa + Documento` e classificar a multiplicidade sem remover linhas de `stg_Documentos`.
+Classificações encontradas no conjunto atual:
 
-Classificações:
+- `ÚNICO`;
+- `DUPLICIDADE ENTRE FILIAIS`.
 
-- `ÚNICO`: uma ocorrência;
-- `RENOVAÇÃO POSSÍVEL`: mais de uma validade distinta para a mesma placa + documento;
-- `DUPLICIDADE ENTRE FILIAIS`: mesma validade, mas mais de uma `Filial SuaTrans`;
-- `DUPLICIDADE MESMA VALIDADE`: múltiplos registros com mesma validade sem evidência de filiais diferentes.
+Não foram encontradas no conjunto atual:
 
-A consulta também expõe:
+- `RENOVAÇÃO POSSÍVEL`;
+- `DUPLICIDADE MESMA VALIDADE` sem evidência de filiais diferentes.
 
-- `Qtd Registros`;
-- `Qtd Validades Distintas`;
-- `Validades`;
+Também foi observado que `Requer Revisão` contém `TRUE` e `FALSE`, como esperado para distinguir linhas únicas de linhas com multiplicidade.
+
+Exemplos de grupos de filiais observados incluem:
+
+- `FILIAL CAUCAIA | FILIAL MIRAMAR | FILIAL SÃO LUIS`;
+- `FILIAL JOÃO PESSOA | FILIAL MACEIO | FILIAL SUAPE`;
+- `FILIAL CAUCAIA | FILIAL MUCURIPE`.
+
+Conclusão do diagnóstico atual:
+
+- multiplicidades observadas são predominantemente espelhos entre filiais;
+- elas não devem multiplicar as linhas do modelo analítico;
+- a evidência deve continuar disponível para auditoria e futura `FactQualidade`.
+
+### 2C.4 — `stg_DocumentosCorrentes` — AGUARDANDO VALIDAÇÃO
+
+Consulta canônica criada com granularidade de uma linha por `Placa + Tipo de Documento`.
+
+Regra de seleção:
+
+1. maior `Validade`;
+2. em empate, maior `SourceModified`;
+3. em novo empate, `Filial SuaTrans` em ordem alfabética apenas para obter resultado determinístico.
+
+A seleção ocorre dentro de cada grupo, sem depender da ordem externa do Power Query.
+
+A consulta mantém os indicadores da auditoria:
+
+- `Qtd Registros Origem`;
+- `Qtd Validades Distintas Origem`;
+- `Validades Origem Agrupadas`;
 - `Qtd Filiais SuaTrans Distintas`;
-- `Filiais SuaTrans`;
-- `Status Calculados`;
-- `Requer Revisão`.
+- `Filiais SuaTrans Origem`;
+- `Classificação Multiplicidade`;
+- `Requer Revisão`;
+- `Seleção Canônica`.
 
-### Decisão antes da FactDocumentos
+Validar no Desktop:
 
-A camada detalhada continuará preservando todas as ocorrências.
+- consulta abre sem erro;
+- existe no máximo uma linha por `Placa + Tipo de Documento`;
+- a placa `DKZ4571` passa de 27 linhas detalhadas para 9 linhas canônicas;
+- as validades escolhidas são as mesmas observadas no conjunto detalhado;
+- as linhas continuam indicando `DUPLICIDADE ENTRE FILIAIS` quando essa condição existia na origem.
 
-A futura seleção do documento corrente deverá ocorrer em uma camada canônica separada. Duplicidades de origem não serão simplesmente apagadas: a linha canônica poderá ser uma por `Placa + Documento`, mas a quantidade/classificação das ocorrências deve alimentar `FactQualidade`.
-
-Antes de implementar essa seleção, validar a distribuição das classificações em `stg_DocumentosAuditoria`, especialmente se existem casos reais de `RENOVAÇÃO POSSÍVEL` além de duplicidades entre filiais.
+Somente após esse teste o Gate 2C será fechado e a camada poderá servir de base para `FactDocumentos`.
 
 ## Gate 2D — MaxTrack
 
