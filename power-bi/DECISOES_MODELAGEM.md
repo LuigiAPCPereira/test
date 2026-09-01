@@ -16,15 +16,29 @@ Exemplos atuais vindos do SuaTrans:
 
 Esses campos **não devem ser promovidos automaticamente para `FactDocumentos`** e não devem permanecer em uma camada canônica/model-facing apenas porque existem na fonte.
 
+### Exceção aprovada — `Restritivo`
+
+`Restritivo` foi confirmado como **atributo relevante de negócio** e deverá permanecer na camada canônica documental e na futura `FactDocumentos`.
+
+Semântica operacional informada:
+
+- indica se o documento possui caráter restritivo;
+- quando um documento restritivo está vencido, existe risco operacional/legal elevado para o veículo em fiscalização;
+- portanto, `Restritivo` deve participar de priorização, alertas e indicadores de risco documental.
+
+A modelagem não deve tratar `Restritivo` como mero metadado de auditoria.
+
+Campos como `Nº Chamado`, `Ação` e `Responsável` continuam provisórios e só serão mantidos no modelo final se houver uso analítico comprovado.
+
 Regra adotada:
 
 1. `stg_SuaTransRaw`: preserva a estrutura necessária para rastreabilidade e diagnóstico;
 2. `stg_Documentos`: pode manter campos adicionais enquanto o comportamento da origem ainda estiver sendo investigado;
 3. `stg_DocumentosAuditoria`: mantém apenas o necessário para diagnosticar multiplicidade/qualidade;
-4. `stg_DocumentosCorrentes`: deve ser enxugada antes da criação de `FactDocumentos`, removendo campos sem finalidade analítica ou de rastreabilidade comprovada;
-5. `FactDocumentos`: conterá somente chaves, atributos factuais e metadados estritamente necessários ao modelo e à auditoria de qualidade.
+4. `stg_DocumentosCorrentes`: deve ser enxugada antes da criação de `FactDocumentos`, removendo campos sem finalidade analítica ou de rastreabilidade comprovada, **preservando `Restritivo`**;
+5. `FactDocumentos`: conterá somente chaves, atributos factuais e metadados necessários ao modelo, incluindo `Restritivo` como atributo de negócio.
 
-A presença temporária de uma coluna no staging **não implica** que ela fará parte do modelo final.
+A presença temporária de uma coluna no staging **não implica** que ela fará parte do modelo final, com exceção das colunas já aprovadas explicitamente como relevantes.
 
 ## Gate 2C.4 — Documentos correntes
 
