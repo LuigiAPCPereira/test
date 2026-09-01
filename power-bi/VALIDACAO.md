@@ -2,71 +2,63 @@
 
 Este documento define gates antes de avançar entre as fases do Power BI.
 
-## Gate 2A — Fontes SharePoint
+## Gate 2A — Fontes SharePoint — PASS
 
-Validar no Power BI Desktop cada consulta `stg_SP_*` isoladamente.
+Validado no Power BI Desktop em 2026-09-01.
 
-### stg_SP_PlanilhaMae
+Resultado:
 
-Esperado:
+- `stg_SP_PlanilhaMae` abriu `Documentos Compartilhados/Manutenção e Disponibilidade` e encontrou `Programações Paradas Frotas.xlsm`;
+- `stg_SP_SuaTrans` abriu a pasta física `Documentos Compartilhados/Dados Suastrans` e encontrou o export `Sisdocs.xlsx`;
+- `stg_SP_MaxTrack` abriu a pasta correta;
+- `stg_SP_Tableau` abriu a pasta correta;
+- autenticação corporativa funcionou;
+- não ocorreu `Formula.Firewall`;
+- não foi necessário enumerar o site inteiro com `SharePoint.Files`.
 
-- navegar somente até `Documentos Compartilhados/Manutenção e Disponibilidade`;
-- encontrar `Programações Paradas Frotas.xlsm`;
-- preservar `Content`, `Name`, `Date created`, `Date modified`, `Folder Path` e `Extension` quando disponíveis.
-
-### stg_SP_SuasTrans
-
-Esperado:
-
-- navegar somente até `Documentos Compartilhados/Dados Suastrans`;
-- listar os exports válidos da pasta;
-- não enumerar o site inteiro.
-
-### stg_SP_MaxTrack
-
-Esperado:
-
-- navegar somente até `Documentos Compartilhados/Dados MaxTrack`;
-- listar os exports válidos da pasta;
-- não enumerar o site inteiro.
-
-### stg_SP_Tableau
-
-Esperado:
-
-- navegar somente até `Documentos Compartilhados/Dados Tableau`;
-- listar os exports válidos da pasta;
-- não enumerar o site inteiro.
+Observação de nomenclatura: o projeto usa **SuaTrans**; `Suastrans` permanece apenas no nome físico da pasta SharePoint.
 
 ### Gate de segurança
 
-Se ocorrer `Formula.Firewall`, erro de credencial, biblioteca/pasta não encontrada ou diferença estrutural:
+Se ocorrer `Formula.Firewall`, erro de credencial, biblioteca/pasta não encontrada ou diferença estrutural em refresh futuro:
 
 1. registrar a consulta e etapa exatas;
 2. não reduzir níveis de privacidade para contornar o erro;
 3. não continuar para as transformações de negócio até entender a causa.
 
-## Gate 2B — Frota oficial
+## Gate 2B — Frota oficial — PASS
 
-Antes de criar `DimFrota`:
+Validado no Power BI Desktop em 2026-09-01 com `stg_Frota`.
 
-- filtrar `Mercado = Empresarial Nordeste` dinamicamente;
+Resultado informado:
+
+- `Mercado = Empresarial Nordeste` filtrado dinamicamente;
 - nenhuma placa vazia;
-- validar `COUNT(Placa) = DISTINCTCOUNT(Placa)`;
-- validar se `Frota` é única e documentar exceções;
-- não hardcodar 57 veículos;
-- comparar amostras com a planilha mãe.
+- nenhuma placa duplicada;
+- nenhuma frota vazia;
+- nenhuma frota duplicada;
+- coluna `Integridade` sem exceções;
+- nenhuma quantidade de veículos foi hardcodada.
 
-## Gate 2C — SuasTrans raw e documentos
+Com isso, `stg_Frota` está apta a servir de origem para a futura `DimFrota`.
+
+## Gate 2C — SuaTrans raw e documentos — EM ANDAMENTO
 
 A camada raw deve existir antes do recorte corrente.
 
+Consulta inicial:
+
+- `stg_SuaTransRaw`
+
 Validar:
 
-- nove códigos documentais esperados;
-- placa normalizada;
-- veículo fora da frota oficial não entra no modelo de negócio;
-- registros repetidos ainda estão disponíveis na camada usada pela qualidade;
+- o arquivo corrente selecionado é o export esperado;
+- as colunas estruturais do export são reconhecidas;
+- `SourceFile`, `SourceCreated` e `SourceModified` são preservados;
+- nove códigos documentais esperados podem ser encontrados após o recorte de negócio;
+- placa poderá ser normalizada sem perder o valor bruto necessário à auditoria;
+- veículo fora da frota oficial não entrará no modelo de negócio;
+- registros repetidos continuam disponíveis na camada usada pela qualidade;
 - nenhum `Table.Distinct` impede a auditoria de duplicidades antes da classificação.
 
 Investigar a semântica de múltiplos registros para a mesma placa/documento:
