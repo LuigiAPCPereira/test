@@ -24,11 +24,13 @@ Staging inicial:
 
 - `stg_SP_MaxTrack`
 
-### SuasTrans
+### SuaTrans
 
-Pasta:
+Pasta física no SharePoint:
 
 `Documentos Compartilhados/Dados Suastrans`
+
+O nome do sistema/modelo neste projeto é **SuaTrans**. O texto `Suastrans` é mantido apenas quando necessário para representar literalmente o nome da pasta corporativa.
 
 Uso:
 
@@ -36,9 +38,10 @@ Uso:
 - validade;
 - situação documental.
 
-Staging inicial:
+Staging:
 
-- `stg_SP_SuasTrans`
+- `stg_SP_SuaTrans`
+- `stg_SuaTransRaw`
 
 A transformação de negócio deve preservar uma camada raw antes de qualquer deduplicação para permitir auditoria real de documentos faltantes/duplicados.
 
@@ -87,9 +90,10 @@ Uso:
 - KM da próxima preventiva;
 - data da próxima preventiva.
 
-Staging inicial:
+Staging:
 
 - `stg_SP_PlanilhaMae`
+- `stg_Frota`
 
 ## Conector
 
@@ -117,12 +121,13 @@ Sempre que disponíveis, preservar no staging:
 - `Date created`;
 - `Date modified`.
 
-Esses campos são importantes para:
+Nas camadas raw, preservar também equivalentes como:
 
-- rastreabilidade;
-- escolha do arquivo corrente;
-- diagnóstico de refresh;
-- futura avaliação de snapshots históricos.
+- `SourceFile`;
+- `SourceCreated`;
+- `SourceModified`.
+
+Esses campos são importantes para rastreabilidade, escolha do arquivo corrente, diagnóstico de refresh e futura avaliação de snapshots históricos.
 
 ## Histórico
 
