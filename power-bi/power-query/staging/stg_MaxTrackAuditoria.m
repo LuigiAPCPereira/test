@@ -8,8 +8,21 @@ let
 
     FonteMaxTrack = stg_MaxTrack,
 
+    ColunasObrigatorias = {"Placa Normalizada", "Odometro KM", "SourceFile"},
+    ColunasFaltantes = List.Difference(ColunasObrigatorias, Table.ColumnNames(FonteMaxTrack)),
+
+    ValidarEstrutura =
+        if List.Count(ColunasFaltantes) > 0 then
+            error Error.Record(
+                "Estrutura MaxTrack inválida",
+                "stg_MaxTrack não contém todas as colunas necessárias para a auditoria.",
+                [ColunasFaltantes = ColunasFaltantes, ColunasEncontradas = Table.ColumnNames(FonteMaxTrack)]
+            )
+        else
+            FonteMaxTrack,
+
     ResumoMaxTrack = Table.Group(
-        FonteMaxTrack,
+        ValidarEstrutura,
         {"Placa Normalizada"},
         {
             {"Qtd Registros MaxTrack", each Table.RowCount(_), Int64.Type},
