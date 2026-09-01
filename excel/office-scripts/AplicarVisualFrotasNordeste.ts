@@ -20,6 +20,8 @@ function main(workbook: ExcelScript.Workbook) {
     darkGray: "#666666"
   };
 
+  const DATE_FORMAT_PT_BR = "dd/mm/aaaa";
+
   const operationalSheets = [
     "AcoesOperacionais",
     "PreventivaRodante",
@@ -35,12 +37,15 @@ function main(workbook: ExcelScript.Workbook) {
     return workbook.getWorksheet(name);
   }
 
+  function unfreezeSheet(sheet: ExcelScript.Worksheet) {
+    sheet.getFreezePanes().unfreeze();
+  }
+
   function styleBase(sheet: ExcelScript.Worksheet) {
     const used = sheet.getUsedRange();
     if (!used) return;
 
     sheet.setShowGridlines(false);
-    sheet.getFreezePanes().unfreeze();
 
     const header = used.getRow(0);
     header.getFormat().getFill().setColor(C.navy);
@@ -66,6 +71,10 @@ function main(workbook: ExcelScript.Workbook) {
     sheet.getRange(address).getFormat().setColumnWidth(width);
   }
 
+  function setPtBrDateFormat(sheet: ExcelScript.Worksheet, address: string) {
+    sheet.getRange(address).setNumberFormatLocal(DATE_FORMAT_PT_BR);
+  }
+
   function addCustomFill(
     range: ExcelScript.Range,
     formula: string,
@@ -80,9 +89,13 @@ function main(workbook: ExcelScript.Workbook) {
     if (bold) cf.getFormat().getFont().setBold(true);
   }
 
+  // Sempre desfaz congelamentos salvos por execuções anteriores antes de estilizar.
   operationalSheets.forEach((name) => {
     const s = getSheet(name);
-    if (s) styleBase(s);
+    if (s) {
+      unfreezeSheet(s);
+      styleBase(s);
+    }
   });
 
   // ============================================================
@@ -118,7 +131,7 @@ function main(workbook: ExcelScript.Workbook) {
       acoes.getRange("H:H").getFormat().setWrapText(true);
       acoes.getRange("J:J").getFormat().setWrapText(true);
       acoes.getRange("O:O").getFormat().setWrapText(true);
-      acoes.getRange(`K2:K${rows}`).setNumberFormatLocal("dd/mm/aaaa");
+      setPtBrDateFormat(acoes, `K2:K${rows}`); // DATA
       acoes.getRange(`N2:N${rows}`).setNumberFormatLocal("#,##0");
     }
   }
@@ -149,8 +162,8 @@ function main(workbook: ExcelScript.Workbook) {
       setWidth(preventiva, "N:O", 155);
       setWidth(preventiva, "P:S", 105);
       preventiva.getRange("K:O").getFormat().setWrapText(true);
-      preventiva.getRange(`L2:L${rows}`).setNumberFormatLocal("dd/mm/aaaa");
-      preventiva.getRange(`S2:S${rows}`).setNumberFormatLocal("dd/mm/aaaa");
+      setPtBrDateFormat(preventiva, `L2:L${rows}`); // Data Próx. Prev.
+      setPtBrDateFormat(preventiva, `S2:S${rows}`); // Data referência
     }
   }
 
@@ -177,8 +190,8 @@ function main(workbook: ExcelScript.Workbook) {
       setWidth(suas, "F:F", 92);
       setWidth(suas, "G:I", 105);
       suas.getRange("E:E").getFormat().setWrapText(true);
-      suas.getRange(`F2:F${rows}`).setNumberFormatLocal("dd/mm/aaaa");
-      suas.getRange(`I2:I${rows}`).setNumberFormatLocal("dd/mm/aaaa");
+      setPtBrDateFormat(suas, `F2:F${rows}`); // Validade
+      setPtBrDateFormat(suas, `I2:I${rows}`); // data de referência/alteração da carga visível
     }
   }
 
@@ -209,8 +222,9 @@ function main(workbook: ExcelScript.Workbook) {
       setWidth(os, "P:U", 105);
       os.getRange("F:F").getFormat().setWrapText(true);
       os.getRange("O:O").getFormat().setWrapText(true);
-      os.getRange(`Q2:Q${rows}`).setNumberFormatLocal("dd/mm/aaaa");
-      os.getRange(`U2:U${rows}`).setNumberFormatLocal("dd/mm/aaaa");
+      setPtBrDateFormat(os, `L2:M${rows}`); // DATA_DA_SOLICITACAO / ALTERADO_DATA
+      setPtBrDateFormat(os, `Q2:Q${rows}`); // DATA OS
+      setPtBrDateFormat(os, `U2:U${rows}`); // DATA REFERÊNCIA
     }
   }
 
@@ -249,6 +263,13 @@ function main(workbook: ExcelScript.Workbook) {
     setWidth(atualizacao, "M:M", 110);
     setWidth(atualizacao, "N:O", 220);
     atualizacao.getRange("K:O").getFormat().setWrapText(true);
+
+    const used = atualizacao.getUsedRange();
+    if (used) {
+      const rows = Math.max(used.getRowCount(), 2);
+      setPtBrDateFormat(atualizacao, `E2:J${rows}`); // CIV, Crono, CIPP, TH, Medidor, Mano/Ter
+      setPtBrDateFormat(atualizacao, `L2:L${rows}`); // CRLV
+    }
   }
 
   const max = getSheet("MaxTrack");
@@ -266,6 +287,12 @@ function main(workbook: ExcelScript.Workbook) {
     setWidth(tableu, "F:F", 240);
     setWidth(tableu, "G:N", 120);
     tableu.getRange("F:F").getFormat().setWrapText(true);
+
+    const used = tableu.getUsedRange();
+    if (used) {
+      const rows = Math.max(used.getRowCount(), 2);
+      setPtBrDateFormat(tableu, `L2:M${rows}`); // DATA_DA_SOLICITACAO / ALTERADO_DATA
+    }
   }
 
   // ============================================================
@@ -283,8 +310,8 @@ function main(workbook: ExcelScript.Workbook) {
     }
   }
 
+  unfreezeSheet(painel);
   painel.setShowGridlines(false);
-  painel.getFreezePanes().unfreeze();
   painel.getRange("A1:N30").getFormat().getFont().setName("Aptos");
   painel.getRange("A1:N30").getFormat().getFont().setColor(C.text);
 
@@ -414,5 +441,13 @@ function main(workbook: ExcelScript.Workbook) {
 
   painel.getRange("A:N").getFormat().setColumnWidth(84);
   painel.getRange("A1:N30").getFormat().setVerticalAlignment(ExcelScript.VerticalAlignment.center);
+
+  // Garante o estado final idempotente: nenhuma aba manipulada termina congelada.
+  operationalSheets.forEach((name) => {
+    const s = getSheet(name);
+    if (s) unfreezeSheet(s);
+  });
+  unfreezeSheet(painel);
+
   painel.activate();
 }
