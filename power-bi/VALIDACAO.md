@@ -57,50 +57,61 @@ Resultado informado:
 - a camada possui mais de 999 linhas, coerente com seu papel raw;
 - nenhum filtro de frota Nordeste, nove documentos ou deduplicação foi aplicado nessa camada.
 
-### 2C.2 — `stg_Documentos` — AGUARDANDO VALIDAÇÃO
+### 2C.2 — `stg_Documentos` — PASS ESTRUTURAL
 
-Objetivo:
+Validado no Power BI Desktop em 2026-09-01.
 
-- partir de `stg_SuaTransRaw`;
-- manter apenas registros `Tipo = Veículo`;
-- manter somente os nove documentos de negócio;
-- cruzar pela placa normalizada com `stg_Frota` usando `Inner Join`, excluindo do modelo de negócio entidades fora da frota oficial;
-- preservar valor bruto de placa/frota, status de origem e validade de origem;
-- calcular status documental sem substituir o status de origem;
-- contar ocorrências por `Placa + Tipo de Documento`;
-- **não** executar `Table.Distinct`.
+A consulta:
 
-Nove tipos esperados:
+- parte de `stg_SuaTransRaw`;
+- mantém apenas registros `Tipo = Veículo`;
+- mantém somente os nove documentos de negócio;
+- cruza pela placa normalizada com `stg_Frota` usando `Inner Join`;
+- preserva placa/frota, filial, status e validade vindos do SuaTrans;
+- calcula status documental sem substituir o status de origem;
+- conta ocorrências por `Placa + Tipo de Documento`;
+- não executa `Table.Distinct`.
 
-1. `02.01 - Calibração - Manômetro Analógico Vertical`
-2. `02.02 - Calibração - Medidor Mássico`
-3. `02.03 - Calibração - Termometro Analógico`
-4. `02.04 - Calibração - Manômetro Analógico Horizontal`
-5. `02.05 - CIPP`
-6. `02.06 - CIV`
-7. `02.07 - CRLV`
-8. `02.08 - Cronotacógrafo`
-9. `02.25 - Teste Hidrostático - Mangueira Flexível`
+### Evidência real de multiplicidade
 
-Validar no Desktop:
+Amostra validada no Desktop para a placa `DKZ4571` / frota `F15794`:
 
-- consulta abre sem erro;
-- apenas placas oficiais aparecem;
-- códigos documentais estão restritos aos nove esperados;
-- `Status Fonte` e `Status Calculado` coexistem;
-- `Qtd Registros Placa Documento` é calculada;
-- linhas com `Multiplicidade = MÚLTIPLOS REGISTROS` continuam presentes.
+- os nove documentos aparecem com `Qtd Registros Placa Documento = 3`;
+- para cada documento da amostra, as três ocorrências têm a mesma validade;
+- as ocorrências vêm de três filiais SuaTrans diferentes: `FILIAL CAUCAIA`, `FILIAL MIRAMAR` e `FILIAL SÃO LUIS`;
+- portanto, essa amostra **não representa três renovações documentais**;
+- trata-se de duplicidade de negócio entre filiais para a mesma placa + documento + validade.
 
-### Decisão pendente antes da FactDocumentos
+Esse resultado confirma que a deduplicação existente no fluxo Excel escondia uma condição que precisa permanecer auditável no Power BI.
 
-`MÚLTIPLOS REGISTROS` ainda não significa automaticamente erro.
+### 2C.3 — `stg_DocumentosAuditoria` — AGUARDANDO VALIDAÇÃO
 
-Investigar amostras para determinar se representam:
+Consulta criada para agrupar `Placa + Documento` e classificar a multiplicidade sem remover linhas de `stg_Documentos`.
 
-- histórico/renovação legítima do mesmo documento; ou
-- repetição indevida do mesmo registro.
+Classificações:
 
-Somente depois dessa análise será definida a seleção do documento corrente. Nenhuma deduplicação poderá ser aplicada antes dessa decisão.
+- `ÚNICO`: uma ocorrência;
+- `RENOVAÇÃO POSSÍVEL`: mais de uma validade distinta para a mesma placa + documento;
+- `DUPLICIDADE ENTRE FILIAIS`: mesma validade, mas mais de uma `Filial SuaTrans`;
+- `DUPLICIDADE MESMA VALIDADE`: múltiplos registros com mesma validade sem evidência de filiais diferentes.
+
+A consulta também expõe:
+
+- `Qtd Registros`;
+- `Qtd Validades Distintas`;
+- `Validades`;
+- `Qtd Filiais SuaTrans Distintas`;
+- `Filiais SuaTrans`;
+- `Status Calculados`;
+- `Requer Revisão`.
+
+### Decisão antes da FactDocumentos
+
+A camada detalhada continuará preservando todas as ocorrências.
+
+A futura seleção do documento corrente deverá ocorrer em uma camada canônica separada. Duplicidades de origem não serão simplesmente apagadas: a linha canônica poderá ser uma por `Placa + Documento`, mas a quantidade/classificação das ocorrências deve alimentar `FactQualidade`.
+
+Antes de implementar essa seleção, validar a distribuição das classificações em `stg_DocumentosAuditoria`, especialmente se existem casos reais de `RENOVAÇÃO POSSÍVEL` além de duplicidades entre filiais.
 
 ## Gate 2D — MaxTrack
 
