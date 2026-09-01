@@ -23,9 +23,9 @@ function main(workbook: ExcelScript.Workbook) {
   const operationalSheets = [
     "AcoesOperacionais",
     "PreventivaRodante",
-    "SuaTrans",
+    "SuasTrans",
     "OSOperacional",
-    "Atualizacao",
+    "AtualizacaoMae",
     "QualidadeDados",
     "MaxTrack",
     "Tableu"
@@ -35,14 +35,12 @@ function main(workbook: ExcelScript.Workbook) {
     return workbook.getWorksheet(name);
   }
 
-  function styleBase(sheet: ExcelScript.Worksheet, freezeColumns: number = 3) {
+  function styleBase(sheet: ExcelScript.Worksheet) {
     const used = sheet.getUsedRange();
     if (!used) return;
 
     sheet.setShowGridlines(false);
     sheet.getFreezePanes().unfreeze();
-    sheet.getFreezePanes().freezeRows(1);
-    if (freezeColumns > 0) sheet.getFreezePanes().freezeColumns(freezeColumns);
 
     const header = used.getRow(0);
     header.getFormat().getFill().setColor(C.navy);
@@ -84,7 +82,7 @@ function main(workbook: ExcelScript.Workbook) {
 
   operationalSheets.forEach((name) => {
     const s = getSheet(name);
-    if (s) styleBase(s, name === "MaxTrack" ? 3 : 3);
+    if (s) styleBase(s);
   });
 
   // ============================================================
@@ -96,7 +94,7 @@ function main(workbook: ExcelScript.Workbook) {
     if (used) {
       const rows = Math.max(used.getRowCount(), 2);
       const whole = acoes.getRange(`A2:R${rows}`);
-      whole.getConditionalFormats().clearAll();
+      whole.clearAllConditionalFormats();
 
       addCustomFill(whole, '=$E2="URGENTE"', C.urgentFill, C.urgent, true);
       addCustomFill(whole, '=$E2="AÇÃO"', C.actionFill, C.action, true);
@@ -120,7 +118,7 @@ function main(workbook: ExcelScript.Workbook) {
       acoes.getRange("H:H").getFormat().setWrapText(true);
       acoes.getRange("J:J").getFormat().setWrapText(true);
       acoes.getRange("O:O").getFormat().setWrapText(true);
-      acoes.getRange(`K2:K${rows}`).setNumberFormatLocal("dd/mm/yyyy");
+      acoes.getRange(`K2:K${rows}`).setNumberFormatLocal("dd/mm/aaaa");
       acoes.getRange(`N2:N${rows}`).setNumberFormatLocal("#,##0");
     }
   }
@@ -134,7 +132,7 @@ function main(workbook: ExcelScript.Workbook) {
     if (used) {
       const rows = Math.max(used.getRowCount(), 2);
       const whole = preventiva.getRange(`A2:S${rows}`);
-      whole.getConditionalFormats().clearAll();
+      whole.clearAllConditionalFormats();
       addCustomFill(whole, '=$O2="CRÍTICA"', C.urgentFill, C.urgent, true);
       addCustomFill(whole, '=$O2="VENCIDA"', C.urgentFill, C.urgent, true);
       addCustomFill(whole, '=$O2="PROGRAMAR"', C.actionFill, C.action, true);
@@ -151,21 +149,21 @@ function main(workbook: ExcelScript.Workbook) {
       setWidth(preventiva, "N:O", 155);
       setWidth(preventiva, "P:S", 105);
       preventiva.getRange("K:O").getFormat().setWrapText(true);
-      preventiva.getRange(`L2:L${rows}`).setNumberFormatLocal("dd/mm/yyyy");
-      preventiva.getRange(`S2:S${rows}`).setNumberFormatLocal("dd/mm/yyyy");
+      preventiva.getRange(`L2:L${rows}`).setNumberFormatLocal("dd/mm/aaaa");
+      preventiva.getRange(`S2:S${rows}`).setNumberFormatLocal("dd/mm/aaaa");
     }
   }
 
   // ============================================================
   // SUASTRANS — documentos
   // ============================================================
-  const suas = getSheet("SuaTrans");
+  const suas = getSheet("SuasTrans");
   if (suas) {
     const used = suas.getUsedRange();
     if (used) {
       const rows = Math.max(used.getRowCount(), 2);
       const whole = suas.getRange(`A2:I${rows}`);
-      whole.getConditionalFormats().clearAll();
+      whole.clearAllConditionalFormats();
       addCustomFill(whole, '=$H2="Vencido"', C.urgentFill, C.urgent, true);
       addCustomFill(whole, '=$H2="VENCIDO"', C.urgentFill, C.urgent, true);
       addCustomFill(whole, '=$H2="Expirando"', C.actionFill, C.action, true);
@@ -179,8 +177,8 @@ function main(workbook: ExcelScript.Workbook) {
       setWidth(suas, "F:F", 92);
       setWidth(suas, "G:I", 105);
       suas.getRange("E:E").getFormat().setWrapText(true);
-      suas.getRange(`F2:F${rows}`).setNumberFormatLocal("dd/mm/yyyy");
-      suas.getRange(`I2:I${rows}`).setNumberFormatLocal("dd/mm/yyyy");
+      suas.getRange(`F2:F${rows}`).setNumberFormatLocal("dd/mm/aaaa");
+      suas.getRange(`I2:I${rows}`).setNumberFormatLocal("dd/mm/aaaa");
     }
   }
 
@@ -193,7 +191,7 @@ function main(workbook: ExcelScript.Workbook) {
     if (used) {
       const rows = Math.max(used.getRowCount(), 2);
       const whole = os.getRange(`A2:U${rows}`);
-      whole.getConditionalFormats().clearAll();
+      whole.clearAllConditionalFormats();
       addCustomFill(whole, '=$O2="FECHAR NO MÁXIMO"', C.urgentFill, C.urgent, true);
       addCustomFill(whole, '=$O2="COBRAR MECÂNICA"', C.actionFill, C.action, true);
       addCustomFill(whole, '=$O2="REVISAR STATUS"', C.attentionFill, C.attention, true);
@@ -211,8 +209,8 @@ function main(workbook: ExcelScript.Workbook) {
       setWidth(os, "P:U", 105);
       os.getRange("F:F").getFormat().setWrapText(true);
       os.getRange("O:O").getFormat().setWrapText(true);
-      os.getRange(`Q2:Q${rows}`).setNumberFormatLocal("dd/mm/yyyy");
-      os.getRange(`U2:U${rows}`).setNumberFormatLocal("dd/mm/yyyy");
+      os.getRange(`Q2:Q${rows}`).setNumberFormatLocal("dd/mm/aaaa");
+      os.getRange(`U2:U${rows}`).setNumberFormatLocal("dd/mm/aaaa");
     }
   }
 
@@ -225,7 +223,7 @@ function main(workbook: ExcelScript.Workbook) {
     if (used) {
       const rows = Math.max(used.getRowCount(), 2);
       const whole = qualidade.getRange(`A2:I${rows}`);
-      whole.getConditionalFormats().clearAll();
+      whole.clearAllConditionalFormats();
       addCustomFill(whole, '=$D2="ERRO"', C.urgentFill, C.urgent, true);
       addCustomFill(whole, '=$D2="ALERTA"', C.actionFill, C.action, true);
       setWidth(qualidade, "A:B", 95);
@@ -241,7 +239,7 @@ function main(workbook: ExcelScript.Workbook) {
   // ============================================================
   // ATUALIZAÇÃO MÃE / MAXTRACK / TABLEAU
   // ============================================================
-  const atualizacao = getSheet("Atualizacao");
+  const atualizacao = getSheet("AtualizacaoMae");
   if (atualizacao) {
     setWidth(atualizacao, "A:B", 95);
     setWidth(atualizacao, "C:D", 78);
@@ -279,14 +277,18 @@ function main(workbook: ExcelScript.Workbook) {
   } else {
     painel.getCharts().forEach((chart) => chart.delete());
     const old = painel.getUsedRange();
-    if (old) old.clear(ExcelScript.ClearApplyTo.all);
+    if (old) {
+      old.unmerge();
+      old.clear(ExcelScript.ClearApplyTo.all);
+    }
   }
 
   painel.setShowGridlines(false);
+  painel.getFreezePanes().unfreeze();
   painel.getRange("A1:N30").getFormat().getFont().setName("Aptos");
   painel.getRange("A1:N30").getFormat().getFont().setColor(C.text);
 
-  painel.mergeCells("A1:N1");
+  painel.getRange("A1:N1").merge();
   painel.getRange("A1").setValue("PAINEL OPERACIONAL — FROTAS NORDESTE");
   painel.getRange("A1:N1").getFormat().getFill().setColor(C.navy);
   painel.getRange("A1:N1").getFormat().getFont().setColor(C.white);
@@ -296,7 +298,7 @@ function main(workbook: ExcelScript.Workbook) {
   painel.getRange("A1:N1").getFormat().setVerticalAlignment(ExcelScript.VerticalAlignment.center);
   painel.getRange("A1:N1").getFormat().setRowHeight(42);
 
-  painel.mergeCells("A3:N3");
+  painel.getRange("A3:N3").merge();
   painel.getRange("A3").setValue(`Visão consolidada das ações • Atualizado em ${new Date().toLocaleDateString("pt-BR")}`);
   painel.getRange("A3:N3").getFormat().getFont().setColor(C.darkGray);
   painel.getRange("A3:N3").getFormat().getFont().setItalic(true);
@@ -403,7 +405,7 @@ function main(workbook: ExcelScript.Workbook) {
   chart3.getTitle().setText("Ações por núcleo");
   chart3.getLegend().setVisible(false);
 
-  painel.mergeCells("A30:N30");
+  painel.getRange("A30:N30").merge();
   painel.getRange("A30").setValue("Fluxo diário: adicionar os novos arquivos nas pastas → Dados > Atualizar Tudo → começar por AcoesOperacionais.");
   painel.getRange("A30:N30").getFormat().getFill().setColor(C.gray);
   painel.getRange("A30:N30").getFormat().getFont().setColor(C.darkGray);
@@ -412,6 +414,5 @@ function main(workbook: ExcelScript.Workbook) {
 
   painel.getRange("A:N").getFormat().setColumnWidth(84);
   painel.getRange("A1:N30").getFormat().setVerticalAlignment(ExcelScript.VerticalAlignment.center);
-  painel.getFreezePanes().freezeRows(3);
   painel.activate();
 }
