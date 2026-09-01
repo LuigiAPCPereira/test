@@ -37,8 +37,7 @@ let
         {
             {
                 "Registro Corrente",
-                each Table.FirstN(_, 1),
-                type table
+                each Table.FirstN(_, 1)
             }
         }
     ),
@@ -120,7 +119,7 @@ let
     ),
 
     Resultado = Table.Sort(
-        ExpandAuditoria & [Seleção Canônica = AddSelecaoCanonica[Seleção Canônica]],
+        AddSelecaoCanonica,
         {
             {"Núcleo", Order.Ascending},
             {"Filial", Order.Ascending},
