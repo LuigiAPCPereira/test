@@ -44,29 +44,63 @@ Com isso, `stg_Frota` está apta a servir de origem para a futura `DimFrota`.
 
 ## Gate 2C — SuaTrans raw e documentos — EM ANDAMENTO
 
-A camada raw deve existir antes do recorte corrente.
+### 2C.1 — `stg_SuaTransRaw` — PASS
 
-Consulta inicial:
+Validado no Power BI Desktop em 2026-09-01.
 
-- `stg_SuaTransRaw`
+Resultado informado:
 
-Validar:
+- consulta abriu sem erro;
+- export corrente `Sisdocs.xlsx` foi lido;
+- estrutura esperada apareceu;
+- `SourceFile`, `SourceCreated` e `SourceModified` foram preservados;
+- a camada possui mais de 999 linhas, coerente com seu papel raw;
+- nenhum filtro de frota Nordeste, nove documentos ou deduplicação foi aplicado nessa camada.
 
-- o arquivo corrente selecionado é o export esperado;
-- as colunas estruturais do export são reconhecidas;
-- `SourceFile`, `SourceCreated` e `SourceModified` são preservados;
-- nove códigos documentais esperados podem ser encontrados após o recorte de negócio;
-- placa poderá ser normalizada sem perder o valor bruto necessário à auditoria;
-- veículo fora da frota oficial não entrará no modelo de negócio;
-- registros repetidos continuam disponíveis na camada usada pela qualidade;
-- nenhum `Table.Distinct` impede a auditoria de duplicidades antes da classificação.
+### 2C.2 — `stg_Documentos` — AGUARDANDO VALIDAÇÃO
 
-Investigar a semântica de múltiplos registros para a mesma placa/documento:
+Objetivo:
 
-- histórico de renovação legítimo; ou
-- duplicidade indevida.
+- partir de `stg_SuaTransRaw`;
+- manter apenas registros `Tipo = Veículo`;
+- manter somente os nove documentos de negócio;
+- cruzar pela placa normalizada com `stg_Frota` usando `Inner Join`, excluindo do modelo de negócio entidades fora da frota oficial;
+- preservar valor bruto de placa/frota, status de origem e validade de origem;
+- calcular status documental sem substituir o status de origem;
+- contar ocorrências por `Placa + Tipo de Documento`;
+- **não** executar `Table.Distinct`.
 
-Somente após essa validação definir a regra para escolher o documento corrente em `FactDocumentos`.
+Nove tipos esperados:
+
+1. `02.01 - Calibração - Manômetro Analógico Vertical`
+2. `02.02 - Calibração - Medidor Mássico`
+3. `02.03 - Calibração - Termometro Analógico`
+4. `02.04 - Calibração - Manômetro Analógico Horizontal`
+5. `02.05 - CIPP`
+6. `02.06 - CIV`
+7. `02.07 - CRLV`
+8. `02.08 - Cronotacógrafo`
+9. `02.25 - Teste Hidrostático - Mangueira Flexível`
+
+Validar no Desktop:
+
+- consulta abre sem erro;
+- apenas placas oficiais aparecem;
+- códigos documentais estão restritos aos nove esperados;
+- `Status Fonte` e `Status Calculado` coexistem;
+- `Qtd Registros Placa Documento` é calculada;
+- linhas com `Multiplicidade = MÚLTIPLOS REGISTROS` continuam presentes.
+
+### Decisão pendente antes da FactDocumentos
+
+`MÚLTIPLOS REGISTROS` ainda não significa automaticamente erro.
+
+Investigar amostras para determinar se representam:
+
+- histórico/renovação legítima do mesmo documento; ou
+- repetição indevida do mesmo registro.
+
+Somente depois dessa análise será definida a seleção do documento corrente. Nenhuma deduplicação poderá ser aplicada antes dessa decisão.
 
 ## Gate 2D — MaxTrack
 
