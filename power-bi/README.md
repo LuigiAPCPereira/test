@@ -13,6 +13,9 @@ O Power BI deve consumir as mesmas fontes corporativas do fluxo Excel, e não o 
 
 - Fase 1 — investigação do repositório e modelo de dados: **APROVADA**.
 - Fase 2 — staging / Power Query para Power BI: **EM ANDAMENTO**.
+  - Gate 2A — fontes SharePoint: **PASS**.
+  - Gate 2B — frota oficial: **PASS**.
+  - Gate 2C — SuaTrans raw/documentos: **EM ANDAMENTO**.
 - Fases 3–8: ainda não iniciadas.
 
 ## Modelo V1 aprovado
@@ -49,7 +52,13 @@ Camada derivada de apresentação:
 9. Relacionamentos do modelo devem ser, por padrão, `1:*`, com filtro unidirecional dimensão → fato.
 10. Não criar dashboard antes da validação do staging e do modelo relacional.
 
-## Estrutura planejada
+## Nomenclatura SuaTrans
+
+O nome usado no modelo e na documentação nova é **SuaTrans**.
+
+A pasta física do SharePoint continua chamada `Dados Suastrans`; esse texto é preservado apenas quando representa literalmente o caminho corporativo existente.
+
+## Estrutura atual
 
 ```text
 power-bi/
@@ -62,9 +71,11 @@ power-bi/
     README.md
     staging/
       stg_SP_PlanilhaMae.m
-      stg_SP_SuasTrans.m
+      stg_SP_SuaTrans.m
       stg_SP_MaxTrack.m
       stg_SP_Tableau.m
+      stg_Frota.m
+      stg_SuaTransRaw.m
       ...
 
   dax/
@@ -86,7 +97,7 @@ As pastas de DAX, tema e páginas serão criadas apenas quando as fases correspo
 
 ## Referências do fluxo Excel
 
-A lógica existente em `excel/power-query/` é referência funcional, principalmente:
+A lógica existente em `excel/power-query/` é referência funcional, inclusive quando nomes legados ainda aparecem nos arquivos históricos do Excel, principalmente:
 
 - `ConsultarFrotasNordeste_Contents.m`
 - `SuasTrans_Contents.m`
