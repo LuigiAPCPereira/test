@@ -19,7 +19,7 @@ Dim* / Fact*
 Consultas:
 
 - `stg_SP_PlanilhaMae`
-- `stg_SP_SuasTrans`
+- `stg_SP_SuaTrans`
 - `stg_SP_MaxTrack`
 - `stg_SP_Tableau`
 
@@ -30,6 +30,8 @@ Responsabilidade:
 - preservar metadados dos arquivos;
 - não aplicar regra de negócio.
 
+Observação de nomenclatura: o sistema/modelo é tratado como **SuaTrans**. A pasta física do SharePoint permanece `Dados Suastrans`, pois esse é o nome real no ambiente corporativo.
+
 Configuração recomendada no Power BI Desktop:
 
 - **Enable load: off**;
@@ -38,15 +40,17 @@ Configuração recomendada no Power BI Desktop:
 
 ## Camada 2 — staging de conteúdo
 
-Planejada após o Gate 2A:
+Consultas em construção:
 
 - `stg_Frota`
-- `stg_SuasTransRaw`
+- `stg_SuaTransRaw`
 - `stg_DocumentosNormalizados`
 - `stg_MaxTrackRaw`
 - `stg_OSRaw`
 
-A camada raw deve preservar informação suficiente para auditoria. Em especial, `stg_SuasTransRaw` não deve deduplicar placa + documento antes que a qualidade possa inspecionar repetições.
+A camada raw deve preservar informação suficiente para auditoria. Em especial, `stg_SuaTransRaw` não deve deduplicar placa + documento antes que a qualidade possa inspecionar repetições.
+
+`stg_SuaTransRaw` seleciona o export corrente para a V1, abre a primeira planilha válida, preserva os registros antes de filtros de negócio e adiciona metadados `SourceFile`, `SourceCreated` e `SourceModified` para rastreabilidade.
 
 ## Camada 3 — modelo
 
