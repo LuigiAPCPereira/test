@@ -4,6 +4,10 @@ let
     // Origem: stg_SP_MaxTrack
     // Objetivo: abrir o export corrente e preservar os registros
     // antes de filtrar a frota oficial ou resolver duplicidades.
+    //
+    // O export MaxTrack observado no Power BI pode retornar uma tabela
+    // de Excel.Workbook com apenas Name/Data (sem Kind). Por isso a
+    // seleção da primeira planilha não depende da coluna Kind.
     // ============================================================
 
     LimparCabecalho = (valor as nullable any) as nullable text =>
@@ -68,19 +72,32 @@ let
     DataModificacaoArquivo = Record.FieldOrDefault(ArquivoAtual, "Date modified", null),
 
     Workbook = Excel.Workbook(ConteudoAtual, null, true),
-    Planilhas = Table.SelectRows(Workbook, each [Kind] = "Sheet"),
+    ColunasWorkbook = Table.ColumnNames(Workbook),
 
-    ValidarPlanilha =
-        if Table.RowCount(Planilhas) = 0 then
+    ValidarWorkbook =
+        if Table.RowCount(Workbook) = 0 or not List.Contains(ColunasWorkbook, "Data") then
             error Error.Record(
                 "Planilha não encontrada",
-                "O export MaxTrack não contém planilha do tipo Sheet.",
-                [Arquivo = NomeArquivo]
+                "O export MaxTrack não retornou nenhuma tabela utilizável em Excel.Workbook.",
+                [Arquivo = NomeArquivo, ColunasWorkbook = ColunasWorkbook]
             )
         else
-            Planilhas{0}[Data],
+            Workbook,
 
-    RemoverLinhasIniciais = Table.Skip(ValidarPlanilha, 3),
+    // Quando Kind existe, prioriza Sheet. Quando não existe (estrutura
+    // real observada: Name=FirstSheet, Data=[Table]), usa a primeira tabela.
+    CandidatosPlanilha =
+        if List.Contains(Table.ColumnNames(ValidarWorkbook), "Kind") then
+            let
+                SoSheets = Table.SelectRows(ValidarWorkbook, each Record.FieldOrDefault(_, "Kind", null) = "Sheet")
+            in
+                if Table.RowCount(SoSheets) > 0 then SoSheets else ValidarWorkbook
+        else
+            ValidarWorkbook,
+
+    DadosPlanilha = CandidatosPlanilha{0}[Data],
+
+    RemoverLinhasIniciais = Table.Skip(DadosPlanilha, 3),
     Cabecalhos = Table.PromoteHeaders(RemoverLinhasIniciais, [PromoteAllScalars = true]),
     NomesColunas = Table.ColumnNames(Cabecalhos),
 
