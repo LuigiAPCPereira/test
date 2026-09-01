@@ -20,30 +20,30 @@ let
         type date
     ),
 
-    OrdenarParaSelecao = Table.Sort(
-        AddValidadeOrdem,
-        {
-            {"Placa Normalizada", Order.Ascending},
-            {"Tipo de Documento", Order.Ascending},
-            {"Validade Ordem", Order.Descending},
-            {"SourceModified", Order.Descending},
-            {"Filial SuaTrans", Order.Ascending}
-        }
-    ),
-
     AgruparDocumento = Table.Group(
-        OrdenarParaSelecao,
+        AddValidadeOrdem,
         {"Placa Normalizada", "Tipo de Documento"},
         {
             {
                 "Registro Corrente",
-                each Table.FirstN(_, 1)
+                each
+                    Table.FirstN(
+                        Table.Sort(
+                            _,
+                            {
+                                {"Validade Ordem", Order.Descending},
+                                {"SourceModified", Order.Descending},
+                                {"Filial SuaTrans", Order.Ascending}
+                            }
+                        ),
+                        1
+                    )
             }
         }
     ),
 
     ColunasRegistro = List.RemoveItems(
-        Table.ColumnNames(OrdenarParaSelecao),
+        Table.ColumnNames(AddValidadeOrdem),
         {"Placa Normalizada", "Tipo de Documento"}
     ),
 
