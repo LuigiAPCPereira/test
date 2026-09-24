@@ -18,3 +18,7 @@ A primeira revisão do bloco usava incorretamente `Scripting.RunPowershellScript
 ## Compatibilidade confirmada no tenant
 
 Os arquivos `.robin` com a ação PowerShell importada automaticamente não são compatíveis com esta instalação do PAD. Use `NF_Parser_Completo.ps1` dentro de uma ação **Executar script do PowerShell** adicionada manualmente e siga `PAD_MANUAL_SETUP.md`.
+
+## Compatibilidade confirmada no tenant
+
+Os arquivos `.robin` com a ação PowerShell importada automaticamente não são compatíveis com esta instalação do PAD. Use `NF_Parser_Completo.ps1` dentro de uma ação **Executar script do PowerShell** adicionada manualmente e siga `PAD_MANUAL_SETUP.md`.
