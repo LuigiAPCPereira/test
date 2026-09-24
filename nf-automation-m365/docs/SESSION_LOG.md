@@ -75,3 +75,8 @@
 - A documentação oficial confirma que a ação visual `Executar script do PowerShell` existe no PAD; o problema é o identificador Robin/portabilidade, não a capacidade de script em si.
 - Criado `desktop/NF_Parser_Completo.ps1`.
 - Criado `desktop/PAD_MANUAL_SETUP.md` com montagem manual da única ação problemática.
+
+## 2026-09-24 — Removida dependência de clipboard
+- Execução manual do parser retornou `O PDF não retornou texto`, apesar de `ExtractedPDFText` já ter sido validado anteriormente.
+- Diagnóstico: `Get-Clipboard -Raw` não recebeu o texto no processo PowerShell.
+- Correção: o script usa `%ExtractedPDFText%` diretamente, recurso suportado oficialmente nas scripting actions do PAD.
