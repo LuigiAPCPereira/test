@@ -3,40 +3,114 @@
     "connectionReferences": {
       "shared_sharepointonline": {
         "runtimeSource": "embedded",
-        "connection": {"connectionReferenceLogicalName": "cnf_sharedsharepointonline_d8dc3"},
-        "api": {"name": "shared_sharepointonline"}
+        "connection": {
+          "connectionReferenceLogicalName": "cnf_sharedsharepointonline_d8dc3"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
       }
     },
     "definition": {
       "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
       "contentVersion": "1.0.0.0",
       "parameters": {
-        "$authentication": {"defaultValue": {}, "type": "SecureObject"},
-        "$connections": {"defaultValue": {}, "type": "Object"},
-        "SharePoint Site URL (cnf_SharePointSiteURL)": {"defaultValue": "", "type": "String", "metadata": {"schemaName": "cnf_SharePointSiteURL"}},
-        "Biblioteca de entrada ID (cnf_DocumentLibraryId)": {"defaultValue": "", "type": "String", "metadata": {"schemaName": "cnf_DocumentLibraryId"}},
-        "Pasta de entrada (cnf_InputFolderPath)": {"defaultValue": "", "type": "String", "metadata": {"schemaName": "cnf_InputFolderPath"}},
-        "Lista de controle ID (cnf_ControlListId)": {"defaultValue": "", "type": "String", "metadata": {"schemaName": "cnf_ControlListId"}},
-        "Situação inicial (cnf_InitialStatus)": {"defaultValue": "", "type": "String", "metadata": {"schemaName": "cnf_InitialStatus"}}
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "SharePoint Site URL (cnf_SharePointSiteURL)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "cnf_SharePointSiteURL"
+          }
+        },
+        "Biblioteca de entrada ID (cnf_DocumentLibraryId)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "cnf_DocumentLibraryId"
+          }
+        },
+        "Pasta de entrada (cnf_InputFolderPath)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "cnf_InputFolderPath"
+          }
+        },
+        "Lista de controle ID (cnf_ControlListId)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "cnf_ControlListId"
+          }
+        },
+        "Situação inicial (cnf_InitialStatus)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "cnf_InitialStatus"
+          }
+        }
       },
       "triggers": {
         "Para_um_arquivo_selecionado": {
-          "splitOn": "@triggerBody()?['rows']",
-          "metadata": {"operationMetadataId": "dfc61d83-d243-5111-bb31-18cd186139be"},
-          "type": "OpenApiConnection",
+          "splitOn": "@triggerBody()['rows']",
+          "metadata": {
+            "operationMetadataId": "dfc61d83-d243-5111-bb31-18cd186139be"
+          },
+          "type": "Request",
           "inputs": {
             "schema": {
               "type": "object",
-              "properties": {"rows": {"type": "array", "items": {"type": "object", "properties": {"entity": {"type": "object", "properties": {"ID": {"title": "ID", "type": "integer", "format": "int64"}}, "required": ["ID"]}}, "required": ["entity"]}}},
-              "required": ["rows"]
+              "properties": {
+                "rows": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "entity": {
+                        "type": "object",
+                        "properties": {
+                          "ID": {
+                            "title": "ID",
+                            "type": "integer",
+                            "format": "int64"
+                          }
+                        },
+                        "required": [
+                          "ID"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "entity"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "rows"
+              ]
             },
             "parameters": {
               "dataset": "@parameters('SharePoint Site URL (cnf_SharePointSiteURL)')",
               "table": "@parameters('Biblioteca de entrada ID (cnf_DocumentLibraryId)')"
             },
-            "host": {"apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline", "connectionName": "shared_sharepointonline", "operationId": "ForASelectedFileHybridTrigger"},
-            "authentication": "@parameters('$authentication')"
-          }
+            "host": {
+              "connection": {
+                "name": "@parameters('$connections')['shared_sharepointonline']['connectionId']"
+              }
+            },
+            "operationId": "ForASelectedFileHybridTrigger"
+          },
+          "kind": "ApiConnection"
         }
       },
       "actions": {
@@ -48,14 +122,31 @@
               "table": "@parameters('Biblioteca de entrada ID (cnf_DocumentLibraryId)')",
               "id": "@triggerBody()?['entity']?['ID']"
             },
-            "host": {"apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline", "connectionName": "shared_sharepointonline", "operationId": "GetFileItem"},
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetFileItem"
+            },
             "authentication": "@parameters('$authentication')"
           }
         },
         "É_PDF": {
-          "runAfter": {"Obter_propriedades_do_arquivo": ["Succeeded"]},
+          "runAfter": {
+            "Obter_propriedades_do_arquivo": [
+              "Succeeded"
+            ]
+          },
           "type": "If",
-          "expression": {"and": [{"endsWith": ["@toLower(body('Obter_propriedades_do_arquivo')?['{FilenameWithExtension}'])", ".pdf"]}]},
+          "expression": {
+            "and": [
+              {
+                "endsWith": [
+                  "@toLower(body('Obter_propriedades_do_arquivo')?['{FilenameWithExtension}'])",
+                  ".pdf"
+                ]
+              }
+            ]
+          },
           "actions": {
             "BuscarNFPorArquivo": {
               "type": "OpenApiConnection",
@@ -66,14 +157,31 @@
                   "$filter": "@concat('IDdoarquivo eq ''', replace(body('Obter_propriedades_do_arquivo')?['{Identifier}'], '''', ''''''), '''')",
                   "$top": 1
                 },
-                "host": {"apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline", "connectionName": "shared_sharepointonline", "operationId": "GetItems"},
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetItems"
+                },
                 "authentication": "@parameters('$authentication')"
               }
             },
             "Arquivo_ainda_não_cadastrado": {
-              "runAfter": {"BuscarNFPorArquivo": ["Succeeded"]},
+              "runAfter": {
+                "BuscarNFPorArquivo": [
+                  "Succeeded"
+                ]
+              },
               "type": "If",
-              "expression": {"and": [{"equals": ["@length(body('BuscarNFPorArquivo')?['value'])", 0]}]},
+              "expression": {
+                "and": [
+                  {
+                    "equals": [
+                      "@length(body('BuscarNFPorArquivo')?['value'])",
+                      0
+                    ]
+                  }
+                ]
+              },
               "actions": {
                 "Obter_conteúdo_do_arquivo": {
                   "type": "OpenApiConnection",
@@ -83,12 +191,20 @@
                       "id": "@body('Obter_propriedades_do_arquivo')?['{Identifier}']",
                       "inferContentType": true
                     },
-                    "host": {"apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline", "connectionName": "shared_sharepointonline", "operationId": "GetFileContent"},
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "GetFileContent"
+                    },
                     "authentication": "@parameters('$authentication')"
                   }
                 },
                 "Criar_item": {
-                  "runAfter": {"Obter_conteúdo_do_arquivo": ["Succeeded"]},
+                  "runAfter": {
+                    "Obter_conteúdo_do_arquivo": [
+                      "Succeeded"
+                    ]
+                  },
                   "type": "OpenApiConnection",
                   "inputs": {
                     "parameters": {
@@ -98,15 +214,23 @@
                       "item/Situa_x00e7__x00e3_o/Value": "@parameters('Situação inicial (cnf_InitialStatus)')",
                       "item/IDdoarquivo": "@body('Obter_propriedades_do_arquivo')?['{Identifier}']"
                     },
-                    "host": {"apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline", "connectionName": "shared_sharepointonline", "operationId": "PostItem"},
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "PostItem"
+                    },
                     "authentication": "@parameters('$authentication')"
                   }
                 }
               },
-              "else": {"actions": {}}
+              "else": {
+                "actions": {}
+              }
             }
           },
-          "else": {"actions": {}}
+          "else": {
+            "actions": {}
+          }
         }
       },
       "outputs": {}
