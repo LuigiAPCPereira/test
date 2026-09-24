@@ -1,0 +1,29 @@
+<ImportExportXml OrganizationVersion="9.2.26083.167" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26084.00167">
+  <Entities />
+  <Roles />
+  <Workflows>
+    <Workflow WorkflowId="{75726d84-93a5-5b4a-a951-6bbe4ee98bbe}" Name="NF - Cadastro Inicial - Candidate">
+      <JsonFileName>/Workflows/NF-CadastroInicial-Candidate-75726D84-93A5-5B4A-A951-6BBE4EE98BBE.json</JsonFileName><Type>1</Type><Subprocess>0</Subprocess><Category>5</Category><Mode>0</Mode><Scope>4</Scope><OnDemand>0</OnDemand><TriggerOnCreate>0</TriggerOnCreate><TriggerOnDelete>0</TriggerOnDelete><AsyncAutodelete>0</AsyncAutodelete><SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure><StateCode>0</StateCode><StatusCode>1</StatusCode><RunAs>1</RunAs><IsTransacted>1</IsTransacted><IntroducedVersion>0.1.0.0</IntroducedVersion><IsCustomizable>1</IsCustomizable><BusinessProcessType>0</BusinessProcessType><IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers><ModernFlowType>0</ModernFlowType><PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames><LocalizedName languagecode="1046" description="NF - Cadastro Inicial - Candidate" /></LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{22bb6690-9a70-547e-8ba0-a33be71d6904}" Name="NF - Processamento Imediato - Candidate">
+      <JsonFileName>/Workflows/NF-ProcessamentoImediato-Candidate-22BB6690-9A70-547E-8BA0-A33BE71D6904.json</JsonFileName><Type>1</Type><Subprocess>0</Subprocess><Category>5</Category><Mode>0</Mode><Scope>4</Scope><OnDemand>0</OnDemand><TriggerOnCreate>0</TriggerOnCreate><TriggerOnDelete>0</TriggerOnDelete><AsyncAutodelete>0</AsyncAutodelete><SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure><StateCode>0</StateCode><StatusCode>1</StatusCode><RunAs>1</RunAs><IsTransacted>1</IsTransacted><IntroducedVersion>0.1.0.0</IntroducedVersion><IsCustomizable>1</IsCustomizable><BusinessProcessType>0</BusinessProcessType><IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers><ModernFlowType>0</ModernFlowType><PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames><LocalizedName languagecode="1046" description="NF - Processamento Imediato - Candidate" /></LocalizedNames>
+    </Workflow>
+  </Workflows>
+  <FieldSecurityProfiles /><Templates /><EntityMaps /><EntityRelationships /><OrganizationSettings /><optionsets /><CustomControls /><EntityDataProviders />
+  <connectionreferences>
+    <connectionreference connectionreferencelogicalname="cnf_sharedsharepointonline_d8dc3">
+      <connectionreferencedisplayname>SharePoint ControledenotasFiscais-d8dc3</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_sharepointonline</connectorid><iscustomizable>1</iscustomizable><promptingbehavior>0</promptingbehavior><statecode>0</statecode><statuscode>1</statuscode>
+    </connectionreference>
+  </connectionreferences>
+  <environmentvariabledefinitions>
+    <environmentvariabledefinition schemaname="cnf_SharePointSiteURL"><defaultvalue>https://grupoultracloud.sharepoint.com/teams/Teste728</defaultvalue><displayname>SharePoint Site URL</displayname><description>Site SharePoint onde ficam a biblioteca de PDFs e a lista de controle.</description><type>100000000</type><isrequired>1</isrequired><introducedversion>1.1.0.0</introducedversion><iscustomizable>1</iscustomizable><environmentvariablevalues /></environmentvariabledefinition>
+    <environmentvariabledefinition schemaname="cnf_DocumentLibraryId"><defaultvalue>bdcd1f39-316c-41d4-8f78-cbe6be5ac8b0</defaultvalue><displayname>Biblioteca de entrada ID</displayname><description>GUID da biblioteca de documentos usada pelos gatilhos e pelas ações de arquivo.</description><type>100000000</type><isrequired>1</isrequired><introducedversion>1.1.0.0</introducedversion><iscustomizable>1</iscustomizable><environmentvariablevalues /></environmentvariabledefinition>
+    <environmentvariabledefinition schemaname="cnf_InputFolderPath"><defaultvalue>/Documentos Compartilhados/Notas Fiscais/Notas Fiscais  - Entrada</defaultvalue><displayname>Pasta de entrada</displayname><description>Caminho da pasta monitorada para novas notas fiscais.</description><type>100000000</type><isrequired>1</isrequired><introducedversion>1.1.0.0</introducedversion><iscustomizable>1</iscustomizable><environmentvariablevalues /></environmentvariabledefinition>
+    <environmentvariabledefinition schemaname="cnf_ControlListId"><defaultvalue>8495404d-b784-4fee-863c-ef4b91040e11</defaultvalue><displayname>Lista de controle ID</displayname><description>GUID da lista Controle de Notas Fiscais.</description><type>100000000</type><isrequired>1</isrequired><introducedversion>1.1.0.0</introducedversion><iscustomizable>1</iscustomizable><environmentvariablevalues /></environmentvariabledefinition>
+    <environmentvariabledefinition schemaname="cnf_InitialStatus"><defaultvalue>Revisar</defaultvalue><displayname>Situação inicial</displayname><description>Valor inicial da coluna Situação ao cadastrar uma NF ainda não enriquecida.</description><type>100000000</type><isrequired>1</isrequired><introducedversion>1.1.0.0</introducedversion><iscustomizable>1</iscustomizable><environmentvariablevalues /></environmentvariabledefinition>
+  </environmentvariabledefinitions>
+  <Languages><Language>1046</Language></Languages>
+</ImportExportXml>

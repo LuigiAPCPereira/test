@@ -1,0 +1,106 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {"connectionReferenceLogicalName": "cnf_sharedsharepointonline_d8dc3"},
+        "api": {"name": "shared_sharepointonline"}
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {"defaultValue": {}, "type": "SecureObject"},
+        "$connections": {"defaultValue": {}, "type": "Object"},
+        "SharePoint Site URL (cnf_SharePointSiteURL)": {"defaultValue": "", "type": "String", "metadata": {"schemaName": "cnf_SharePointSiteURL"}},
+        "Biblioteca de entrada ID (cnf_DocumentLibraryId)": {"defaultValue": "", "type": "String", "metadata": {"schemaName": "cnf_DocumentLibraryId"}},
+        "Pasta de entrada (cnf_InputFolderPath)": {"defaultValue": "", "type": "String", "metadata": {"schemaName": "cnf_InputFolderPath"}},
+        "Lista de controle ID (cnf_ControlListId)": {"defaultValue": "", "type": "String", "metadata": {"schemaName": "cnf_ControlListId"}},
+        "Situação inicial (cnf_InitialStatus)": {"defaultValue": "", "type": "String", "metadata": {"schemaName": "cnf_InitialStatus"}}
+      },
+      "triggers": {
+        "Quando_um_arquivo_é_criado_(somente_propriedades)": {
+          "recurrence": {"frequency": "Minute", "interval": 5},
+          "evaluatedRecurrence": {"frequency": "Minute", "interval": 5},
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {"operationMetadataId": "35c0244c-69a1-44fc-b6f8-8d7bc3b07e7a"},
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "dataset": "@parameters('SharePoint Site URL (cnf_SharePointSiteURL)')",
+              "table": "@parameters('Biblioteca de entrada ID (cnf_DocumentLibraryId)')",
+              "folderPath": "@parameters('Pasta de entrada (cnf_InputFolderPath)')"
+            },
+            "host": {"apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline", "connectionName": "shared_sharepointonline", "operationId": "GetOnNewFileItems"},
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Condição": {
+          "actions": {
+            "BuscarNFPorArquivo": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('SharePoint Site URL (cnf_SharePointSiteURL)')",
+                  "table": "@parameters('Lista de controle ID (cnf_ControlListId)')",
+                  "$filter": "@concat('IDdoarquivo eq ''', replace(triggerBody()?['{Identifier}'], '''', ''''''), '''')",
+                  "$top": 1
+                },
+                "host": {"apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline", "connectionName": "shared_sharepointonline", "operationId": "GetItems"},
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Condição_1": {
+              "actions": {
+                "Obter_conteúdo_de_arquivo": {
+                  "metadata": {"operationMetadataId": "9f170d03-920b-4af6-936a-4f0f12ee0739"},
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "@parameters('SharePoint Site URL (cnf_SharePointSiteURL)')",
+                      "id": "@triggerBody()?['{Identifier}']",
+                      "inferContentType": true
+                    },
+                    "host": {"apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline", "connectionName": "shared_sharepointonline", "operationId": "GetFileContent"},
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Criar_item": {
+                  "runAfter": {"Obter_conteúdo_de_arquivo": ["Succeeded"]},
+                  "metadata": {"operationMetadataId": "85065bc3-0747-4647-a4a6-217cfd076cc0"},
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "@parameters('SharePoint Site URL (cnf_SharePointSiteURL)')",
+                      "table": "@parameters('Lista de controle ID (cnf_ControlListId)')",
+                      "item/Title": "@triggerBody()?['{FilenameWithExtension}']",
+                      "item/Situa_x00e7__x00e3_o/Value": "@parameters('Situação inicial (cnf_InitialStatus)')",
+                      "item/IDdoarquivo": "@triggerBody()?['{Identifier}']"
+                    },
+                    "host": {"apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline", "connectionName": "shared_sharepointonline", "operationId": "PostItem"},
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {"BuscarNFPorArquivo": ["Succeeded"]},
+              "else": {"actions": {}},
+              "expression": {"and": [{"equals": ["@length(body('BuscarNFPorArquivo')?['value'])", 0]}]},
+              "type": "If"
+            }
+          },
+          "runAfter": {},
+          "else": {"actions": {}},
+          "expression": {"and": [{"endsWith": ["@toLower(triggerBody()?['{FilenameWithExtension}'])", ".pdf"]}]},
+          "metadata": {"operationMetadataId": "c9df3c99-aa94-4cc8-a4c5-17a69b1cd573"},
+          "type": "If"
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
