@@ -11,3 +11,6 @@ Ele cobre os dois formatos já observados no projeto:
 O parser não inventa campos ausentes; retorna `StatusParser` e `CamposAusentes` para revisão.
 
 A atualização automática do SharePoint ainda não está no bloco porque os nomes internos das colunas fiscais não foram confirmados. Eles não devem ser inferidos.
+## Compatibilidade PAD
+
+A primeira revisão do bloco usava incorretamente `Scripting.RunPowershellScript.RunPowershellScript`. A sintaxe correta, validada contra a ação nativa do PAD, é `System.RunPowershellScript`. Se uma cópia antiga já foi colada no designer, remova o bloco inválido e cole novamente a revisão atual.
