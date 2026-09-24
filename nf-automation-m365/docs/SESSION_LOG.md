@@ -27,3 +27,12 @@
 - Ambiente observado: default.
 - Correção 0.1.2.0: gatilho `For a selected file` vinculado explicitamente ao site e GUID da biblioteca de teste; ações continuam parametrizadas.
 - Estado: correção implementada, reimport/visibilidade pendentes.
+
+## 2026-09-24 — Smoke real do fluxo imediato concluído
+- Test Candidate 0.1.2.0 importada no ambiente corporativo.
+- `NF - Processamento Imediato - Candidate` ativado com sucesso.
+- Fluxo apareceu no SharePoint em `Integrar → Fluxos`.
+- Primeira execução em PDF de teste criou um item em `Controle de Notas Fiscais`.
+- Segunda execução sobre o mesmo PDF não criou item duplicado.
+- Resultado: T-003 e T-004 validadas.
+- Próxima ação: T-005, avaliar/validar engine de extração dos campos fiscais.
