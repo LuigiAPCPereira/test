@@ -51,3 +51,12 @@
 - Texto bruto preservou informações fiscais suficientes para parsing: número da NF, série, fornecedor, CNPJ e valor total.
 - Exemplos observados: `004.241.885`, série `99`, `BAHIANA DISTRIBUIDORA DE GAS LTDA`, `46.395.687/0004-55`, `112.000,00`.
 - Próxima ação: parser estruturado usando ações de texto/regex do PAD.
+
+## 2026-09-24 — Parser completo Desktop preparado
+- Criado `desktop/NF_Parser_Completo_Apos_Extracao.robin` para colar diretamente no designer do Power Automate Desktop.
+- Entrada: `ExtractedPDFText`.
+- Saída: objeto `NF` com os campos fiscais alvo e normalizações ISO/numéricas.
+- Cobertura inicial: NF-e/DANFE e NFS-e, baseada nos formatos reais já observados no projeto.
+- O parser sinaliza campos ausentes em vez de preencher por suposição.
+- Validação estática dos padrões foi feita contra amostras representativas transcritas das NFs observadas; execução real do bloco no PAD ainda pendente.
+- Ação `Atualizar item` não foi gerada porque os nomes internos das colunas fiscais do SharePoint ainda não foram confirmados.
