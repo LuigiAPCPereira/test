@@ -14,3 +14,7 @@ A atualização automática do SharePoint ainda não está no bloco porque os no
 ## Compatibilidade PAD
 
 A primeira revisão do bloco usava incorretamente `Scripting.RunPowershellScript.RunPowershellScript`. A sintaxe correta, validada contra a ação nativa do PAD, é `System.RunPowershellScript`. Se uma cópia antiga já foi colada no designer, remova o bloco inválido e cole novamente a revisão atual.
+
+## Compatibilidade confirmada no tenant
+
+Os arquivos `.robin` com a ação PowerShell importada automaticamente não são compatíveis com esta instalação do PAD. Use `NF_Parser_Completo.ps1` dentro de uma ação **Executar script do PowerShell** adicionada manualmente e siga `PAD_MANUAL_SETUP.md`.
