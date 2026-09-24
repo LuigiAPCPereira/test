@@ -1,11 +1,13 @@
 # PROJECT_STATE — 2026-09-24
 
-- Fonte operacional recebida: `ControledenotasFiscais_1_0_0_1.zip` (Solution unmanaged real do tenant).
-- Repositório de continuidade: `LuigiAPCPereira/test`, subpasta `nf-automation-m365/`.
+- Fonte operacional: Solution unmanaged real do tenant `ControledenotasFiscais_1_0_0_1.zip`.
+- Repositório: `LuigiAPCPereira/test`, `nf-automation-m365/`.
 - Tarefa atual: T-003/T-004.
-- T-003: parametrização/idempotência implementada; validação de runtime pendente.
-- T-004: primeira revisão 0.1.0.0 importou, mas não ativou por trigger manual serializado como `OpenApiConnection`.
-- Correção atual: Test Candidate 0.1.1.0 com `For a selected file` como `Request + ApiConnection`.
-- Validação local 0.1.1.0: ZIP íntegro, XML/JSON parseáveis e assertions estruturais do trigger PASS.
-- Integração/runtime 0.1.1.0: não validada.
-- Próxima ação: importar `dist/ControledenotasFiscais_TestCandidate_0_1_1_0.zip` sobre a Test Candidate existente e tentar ativar somente `NF - Processamento Imediato - Candidate`.
+- T-003: parametrização/idempotência implementada; runtime completo pendente.
+- T-004:
+  - 0.1.0.0 importou, mas não ativou por trigger serializado incorretamente.
+  - 0.1.1.0 ativou com sucesso.
+  - 0.1.1.0 não apareceu em `Integrar → Fluxos` da biblioteca.
+  - 0.1.2.0 fixa o binding do trigger ao site e biblioteca de teste; ações permanecem parametrizadas.
+- Validação local 0.1.2.0: PASS estrutural.
+- Próxima ação: importar `dist/ControledenotasFiscais_TestCandidate_0_1_2_0.zip`, confirmar update, ligar o fluxo imediato e reabrir a biblioteca para checar `Integrar → Fluxos`.
