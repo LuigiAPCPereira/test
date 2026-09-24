@@ -13,3 +13,5 @@
 - Próxima ação: montar as ações 3–7 conforme `PAD_MANUAL_SETUP.md` e executar na NF já usada no teste.
 
 - Correção adicional: removida dependência da área de transferência. `NF_Parser_Completo.ps1` agora recebe `%ExtractedPDFText%` diretamente dentro da ação PowerShell, conforme suporte oficial do PAD a variáveis em scripting actions.
+
+- Parser PowerShell corrigido: 234 ocorrências de escape Robin duplicado foram normalizadas para regex PowerShell real (ex.: `\\s` → `\s`, `\\d` → `\d`). A execução anterior reconhecer `NFE` mas não extrair nenhum campo é consistente com esse defeito.
