@@ -100,8 +100,8 @@
               ]
             },
             "parameters": {
-              "dataset": "@parameters('SharePoint Site URL (cnf_SharePointSiteURL)')",
-              "table": "@parameters('Biblioteca de entrada ID (cnf_DocumentLibraryId)')"
+              "dataset": "https://grupoultracloud.sharepoint.com/teams/Teste728",
+              "table": "bdcd1f39-316c-41d4-8f78-cbe6be5ac8b0"
             },
             "host": {
               "connection": {
