@@ -5,7 +5,7 @@
       <LocalizedName description="Controle de Notas Fiscais - Test Candidate" languagecode="1046" />
     </LocalizedNames>
     <Descriptions />
-    <Version>0.1.1.0</Version>
+    <Version>0.1.2.0</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>ControleNotasFiscais</UniqueName>
