@@ -4,7 +4,7 @@
 
 Clipboard.SetText Text: ExtractedPDFText
 @@copilotGeneratedAction: 'False'
-Scripting.RunPowershellScript.RunPowershellScript Script: $'''$ErrorActionPreference = "Stop"
+System.RunPowershellScript Script: $'''$ErrorActionPreference = "Stop"
 
 function Empty-Result([string]$status, [string]$erro) {
     return [ordered]@{
