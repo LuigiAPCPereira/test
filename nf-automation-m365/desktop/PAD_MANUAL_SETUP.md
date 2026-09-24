@@ -14,13 +14,12 @@ O fluxo já deve ter:
 
 4. Adicione manualmente **Criação de scripts → Executar script do PowerShell**.
    - Cole o conteúdo integral de `NF_Parser_Completo.ps1`.
-   - Saída do PowerShell: renomeie para `ParserJson`.
-   - Saída de erro: mantenha/renomeie para `ParserError`.
+   - Deixe as variáveis produzidas padrão: `PowershellOutput` e `ScriptError`.
 
 5. Adicione **Área de transferência → Limpar área de transferência**.
 
 6. Adicione **Variáveis → Converter JSON em objeto personalizado**.
-   - JSON: `%ParserJson%`
+   - JSON: `%PowershellOutput%`
    - Objeto personalizado produzido: `NF`
 
 7. Adicione **Caixas de mensagens → Exibir mensagem** com:
