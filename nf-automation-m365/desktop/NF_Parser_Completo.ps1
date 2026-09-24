@@ -116,6 +116,47 @@ try {
         return $bestRaw
     }
 
+
+    function Get-SectionText([string]$startPattern, [string]$endPattern) {
+        $m = [regex]::Match($text, "(?is)" + $startPattern + "(.*?)" + $endPattern)
+        if ($m.Success) { return $m.Groups[1].Value }
+        return ""
+    }
+
+    function First-CnpjInText([string]$section) {
+        if ([string]::IsNullOrWhiteSpace($section)) { return "" }
+        $m = [regex]::Match($section, "\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b")
+        if ($m.Success) { return $m.Value }
+        return ""
+    }
+
+    function Guess-CompanyFromSection([string]$section) {
+        if ([string]::IsNullOrWhiteSpace($section)) { return "" }
+
+        $candidates = New-Object System.Collections.Generic.List[string]
+        foreach ($rawLine in ($section -split "\n")) {
+            $line = ($rawLine -replace "\s+", " ").Trim()
+            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+
+            $line = $line -replace "^(?i)(?:NOME(?:\s*/\s*RAZ[AÃ]O\s+SOCIAL)?|RAZ[AÃ]O\s+SOCIAL|NOME\s+EMPRESARIAL)\s*[:\-]?\s*", ""
+            if ($line -match "(?i)^(?:CPF|CNPJ|CPF/CNPJ|INSCRI[CÇ][AÃ]O|ENDERE[CÇ]O|BAIRRO|MUNIC[IÍ]PIO|CEP|TELEFONE|E-?MAIL|PRESTADOR|TOMADOR|C[ÓO]DIGO|DATA\b)") { continue }
+            if ($line.Length -lt 5) { continue }
+
+            $candidates.Add($line)
+        }
+
+        foreach ($line in $candidates) {
+            if ($line -match "(?i)\b(?:LTDA|EIRELI|S\s*/?\s*A|ME|EPP|SOCIEDADE|SERVI[CÇ]OS)\b") {
+                return (Clean-Company $line)
+            }
+        }
+
+        if ($candidates.Count -gt 0) {
+            return (Clean-Company ($candidates | Sort-Object Length -Descending | Select-Object -First 1))
+        }
+        return ""
+    }
+
     $TipoDocumento = "DESCONHECIDO"
     if ($text -match "(?i)NFS-?E|NFSE|NOTA FISCAL DE SERVI[CÇ]OS ELETR[ÔO]NICA") {
         $TipoDocumento = "NFSE"
@@ -167,6 +208,28 @@ try {
             "VALOR\s+L[ÍI]QUIDO\s+DA\s+NFS-?E\s*(?:\(R\$\))?\s*[:\-]?\s*((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})",
             "VALOR\s+L[ÍI]QUIDO[\s\S]{0,80}?((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})"
         )
+
+        # Fallbacks para NFS-e municipais (ex.: Nota Salvador)
+        if (-not $NumeroNF) {
+            $NumeroNF = First-Group @(
+                "N[ÚU]MERO\s+DA\s+NOTA\s*[:\-]?\s*([0-9.]+)",
+                "N[ÚU]MERO\s+NOTA\s*[:\-]?\s*([0-9.]+)"
+            )
+        }
+
+        $prestadorSection = Get-SectionText "PRESTADOR\s+DE\s+SERVI[CÇ]OS?" "(?:TOMADOR\s+DE\s+SERVI[CÇ]OS?|TOMADOR\s+DO\s+SERVI[CÇ]O|DISCRIMINA[CÇ][AÃ]O)"
+        if (-not $EmpresaPrestadora) { $EmpresaPrestadora = Guess-CompanyFromSection $prestadorSection }
+        if (-not $CNPJPrestadora) { $CNPJPrestadora = First-CnpjInText $prestadorSection }
+
+        $tomadorSection = Get-SectionText "(?:TOMADOR\s+DE\s+SERVI[CÇ]OS?(?:\s*/\s*ADQUIRENTE)?|TOMADOR\s+DO\s+SERVI[CÇ]O)" "(?:DISCRIMINA[CÇ][AÃ]O|SERVI[CÇ]O\s+PRESTADO|DESCRI[CÇ][AÃ]O|VALOR\s+TOTAL\s+DA\s+NOTA)"
+        if (-not $EmpresaTomadora) { $EmpresaTomadora = Guess-CompanyFromSection $tomadorSection }
+
+        if (-not $ValorLiquido) {
+            $ValorLiquido = First-Group @(
+                "VALOR\s+TOTAL\s+DA\s+NOTA\s*(?:-|:)\s*(?:R\$\s*)?((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})",
+                "VALOR\s+TOTAL\s+DA\s+NOTA[\s\S]{0,60}?((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})"
+            )
+        }
     }
     else {
         $NumeroNF = First-Group @(
