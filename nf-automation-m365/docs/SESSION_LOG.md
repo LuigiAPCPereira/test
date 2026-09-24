@@ -86,3 +86,9 @@
 - Causa: o arquivo `.ps1` preservava escapes do formato Robin (`\\s`, `\\d`, `\\b` etc.). Em PowerShell/regex standalone esses escapes deveriam ter uma única barra.
 - Correção aplicada globalmente em `desktop/NF_Parser_Completo.ps1`: 234 ocorrências normalizadas.
 - Próxima validação: reexecutar na mesma NF sem alterar as demais ações do fluxo.
+
+## 2026-09-24 — Segundo layout: NFS-e municipal Salvador
+- NF-e/DANFE anterior passou com `Status: OK` e todos os campos alvo preenchidos.
+- Segunda amostra visual é uma NFS-e municipal da Prefeitura de Salvador, com estrutura diferente da NFS-e de Teresina considerada inicialmente.
+- Adicionados fallbacks por seção para número, prestador/CNPJ, tomador e valor total.
+- Validação runtime da nova amostra: pendente.
