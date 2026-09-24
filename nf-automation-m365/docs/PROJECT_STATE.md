@@ -11,3 +11,5 @@
   - execução real do parser: PENDENTE.
 - SharePoint corporativo não será conectado ao ChatGPT; esquema será obtido por export/inspeção autorizada.
 - Próxima ação: montar as ações 3–7 conforme `PAD_MANUAL_SETUP.md` e executar na NF já usada no teste.
+
+- Correção adicional: removida dependência da área de transferência. `NF_Parser_Completo.ps1` agora recebe `%ExtractedPDFText%` diretamente dentro da ação PowerShell, conforme suporte oficial do PAD a variáveis em scripting actions.
