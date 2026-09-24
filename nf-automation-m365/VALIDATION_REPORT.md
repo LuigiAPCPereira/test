@@ -1,32 +1,31 @@
-# VALIDATION_REPORT — Test Candidate 0.1.1.0
+# VALIDATION_REPORT — Test Candidate 0.1.2.0
 
-## Bug reproduzido no tenant
-- Import da 0.1.0.0: concluído.
-- Ativação do `NF - Processamento Imediato - Candidate`: FALHOU.
-- Erro observado: a propriedade `recurrence` do trigger `Para_um_arquivo_selecionado` não estava definida/válida.
-- Causa confirmada na definição gerada: trigger manual foi serializado como `OpenApiConnection`, tipo usado para triggers de polling.
+## Evidência no tenant
+- 0.1.0.0: importou, mas o gatilho imediato não ativou.
+- 0.1.1.0: ativou com sucesso.
+- 0.1.1.0: não apareceu em `Integrar → Fluxos` da biblioteca alvo.
 
-## Correção 0.1.1.0
-- trigger `Para_um_arquivo_selecionado`: `type = Request`.
-- `kind = ApiConnection`.
-- `operationId = ForASelectedFileHybridTrigger` no nível correto de `inputs`.
-- binding da conexão via `$connections.shared_sharepointonline.connectionId`.
-- nenhuma propriedade `recurrence` no trigger manual.
+## Hipótese corrigida em 0.1.2.0
+O gatilho manual estava vinculado a site e biblioteca por environment variables. O SharePoint precisa associar o fluxo à biblioteca correta para listá-lo no menu. Nesta revisão, apenas os parâmetros do gatilho `ForASelectedFileHybridTrigger` ficam concretos:
+- site: `https://grupoultracloud.sharepoint.com/teams/Teste728`
+- biblioteca: `bdcd1f39-316c-41d4-8f78-cbe6be5ac8b0`
+
+As ações do fluxo continuam usando environment variables.
 
 ## Validação local
 - ZIP integrity/open: PASS
 - solution.xml parse: PASS
 - customizations.xml parse: PASS
-- workflow JSON parse: PASS (2 flows)
-- environment variables present: PASS (5)
-- selected-file trigger structural assertions: PASS
-- broken literal `$filter: IDdoarquivo` absent: PASS
-- SHA-256 do ZIP 0.1.1.0: `234a92e2bb203eecf8fd990446230eb880df2a6fb6de9d3a3e08eabf1be47b17`
+- workflow JSON parse: PASS
+- trigger: Request + ApiConnection: PASS
+- trigger recurrence: ausente
+- trigger site/library concretos: PASS
+- SHA-256: `8a00eb8181726f464d5a83bf3adac828c8c46967021216002704922b394e6bc2`
 
 ## Ainda não validado
-- update/import da 0.1.1.0 no tenant;
-- ativação do fluxo imediato;
-- execução real em arquivo selecionado;
-- idempotência contra a lista SharePoint.
+- import/update da 0.1.2.0;
+- aparição em `Integrar → Fluxos`;
+- execução real;
+- deduplicação real.
 
 Resultado: IMPLEMENTADA NÃO VALIDADA.
