@@ -22,7 +22,9 @@ function Empty-Result([string]$status, [string]$erro) {
 }
 
 try {
-    $text = Get-Clipboard -Raw
+    $text = @'
+%ExtractedPDFText%
+'@
     if ([string]::IsNullOrWhiteSpace($text)) {
         (Empty-Result "ERRO" "O PDF não retornou texto extraível.") | ConvertTo-Json -Compress
         exit
