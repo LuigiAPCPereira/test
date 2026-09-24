@@ -74,3 +74,17 @@ Quando sair da condição, execute normalmente `NF_Parser_Completo.ps1`. Ele dev
 - Pode exigir o pacote de idioma Português do Windows.
 - O OCR é fallback; não deve rodar quando o PDF já tiver texto nativo.
 - O caminho OCR precisa de smoke real antes de ser considerado validado.
+
+
+## Diagnóstico quando PngFiles = []
+
+Se a lista `PngFiles` ficar vazia, o OCR ainda não foi executado. Faça primeiro este teste:
+
+1. Crie uma variável `OcrFolder` com um único caminho de pasta temporária.
+2. Use `%OcrFolder%` tanto em **Extrair imagens do PDF** quanto em **Obter arquivos na pasta**.
+3. Temporariamente use o filtro `*` em **Obter arquivos na pasta** para confirmar se qualquer arquivo foi gerado.
+4. Depois da ação, verifique `PngFiles.Count`.
+5. Se `PngFiles.Count > 0`, restaure o filtro `*.png` e siga para OCR.
+6. Se `PngFiles.Count = 0` mesmo usando a mesma pasta e filtro `*`, a ação **Extrair imagens do PDF** não conseguiu produzir imagens desse documento; nesse caso use o fallback OCR de janela/tela em vez de continuar com o loop de PNGs.
+
+A documentação do PAD informa que **Extrair imagens do PDF** salva as imagens extraídas como arquivos PNG, mas a ação não é uma rasterização garantida da página inteira.
