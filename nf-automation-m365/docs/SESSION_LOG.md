@@ -44,3 +44,10 @@
 - Nenhum trial, compra ou mudança administrativa foi realizada.
 - Consequência: AI Builder não é engine utilizável neste ambiente no estado atual.
 - Próximo teste de T-005: Power Automate Desktop, extração nativa de texto de PDF.
+
+## 2026-09-24 — Extração local de PDF validada
+- Power Automate Desktop executou `Selecionar arquivo → Extrair texto do PDF → Exibir mensagem`.
+- PDF digital foi lido sem AI Builder.
+- Texto bruto preservou informações fiscais suficientes para parsing: número da NF, série, fornecedor, CNPJ e valor total.
+- Exemplos observados: `004.241.885`, série `99`, `BAHIANA DISTRIBUIDORA DE GAS LTDA`, `46.395.687/0004-55`, `112.000,00`.
+- Próxima ação: parser estruturado usando ações de texto/regex do PAD.
