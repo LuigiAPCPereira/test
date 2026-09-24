@@ -80,3 +80,9 @@
 - Execução manual do parser retornou `O PDF não retornou texto`, apesar de `ExtractedPDFText` já ter sido validado anteriormente.
 - Diagnóstico: `Get-Clipboard -Raw` não recebeu o texto no processo PowerShell.
 - Correção: o script usa `%ExtractedPDFText%` diretamente, recurso suportado oficialmente nas scripting actions do PAD.
+
+## 2026-09-24 — Causa da falha parcial identificada
+- O parser recebeu texto e classificou corretamente o documento como `NFE`, mas todos os campos ficaram vazios.
+- Causa: o arquivo `.ps1` preservava escapes do formato Robin (`\\s`, `\\d`, `\\b` etc.). Em PowerShell/regex standalone esses escapes deveriam ter uma única barra.
+- Correção aplicada globalmente em `desktop/NF_Parser_Completo.ps1`: 234 ocorrências normalizadas.
+- Próxima validação: reexecutar na mesma NF sem alterar as demais ações do fluxo.
