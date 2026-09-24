@@ -6,7 +6,9 @@
 - T-005:
   - AI Builder bloqueado por ausência de créditos/capacidade.
   - extração nativa de texto no Power Automate Desktop VALIDADA em NF digital.
-  - parser completo NF-e/NFS-e IMPLEMENTADO, ainda não validado em múltiplos PDFs: `desktop/NF_Parser_Completo_Apos_Extracao.robin`.
-  - parser retorna objeto `NF` com NumeroNF, Serie, DataEmissao, EmpresaPrestadora, CNPJPrestadora, EmpresaTomadora, ValorLiquido e campos normalizados.
-- T-006: nomes internos das colunas fiscais da lista SharePoint ainda DESCONHECIDOS; não devem ser inferidos.
-- Próxima ação: colar o bloco Robin após `ExtractedPDFText` e executar em uma NF-e e uma NFS-e; em paralelo, obter esquema real da lista para fechar a gravação automática.
+  - parser completo NF-e/NFS-e implementado.
+  - primeira revisão do parser falhou no designer porque usava namespace interno incorreto `Scripting.RunPowershellScript.RunPowershellScript`.
+  - correção aplicada: `System.RunPowershellScript`, ação nativa do PAD.
+  - reexecução do parser corrigido no PAD: PENDENTE.
+- T-006: nomes internos das colunas fiscais da lista SharePoint ainda não confirmados. Como o SharePoint é corporativo, o projeto não depende de conexão externa ao ChatGPT; o esquema será obtido por export/inspeção autorizada do Power Automate/SharePoint.
+- Próxima ação: substituir o bloco antigo pelo parser corrigido e executar na NF de teste.
