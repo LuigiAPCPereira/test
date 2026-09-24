@@ -1,0 +1,31 @@
+{
+  "EnvironmentVariables": [
+    {
+      "SchemaName": "cnf_SharePointSiteURL",
+      "Value": "https://grupoultracloud.sharepoint.com/teams/Teste728"
+    },
+    {
+      "SchemaName": "cnf_DocumentLibraryId",
+      "Value": "bdcd1f39-316c-41d4-8f78-cbe6be5ac8b0"
+    },
+    {
+      "SchemaName": "cnf_InputFolderPath",
+      "Value": "/Documentos Compartilhados/Notas Fiscais/Notas Fiscais  - Entrada"
+    },
+    {
+      "SchemaName": "cnf_ControlListId",
+      "Value": "8495404d-b784-4fee-863c-ef4b91040e11"
+    },
+    {
+      "SchemaName": "cnf_InitialStatus",
+      "Value": "Revisar"
+    }
+  ],
+  "ConnectionReferences": [
+    {
+      "LogicalName": "cnf_sharedsharepointonline_d8dc3",
+      "ConnectionId": "<VINCULAR_NO_AMBIENTE>",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+    }
+  ]
+}
