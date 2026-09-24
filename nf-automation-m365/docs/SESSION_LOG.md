@@ -92,3 +92,10 @@
 - Segunda amostra visual é uma NFS-e municipal da Prefeitura de Salvador, com estrutura diferente da NFS-e de Teresina considerada inicialmente.
 - Adicionados fallbacks por seção para número, prestador/CNPJ, tomador e valor total.
 - Validação runtime da nova amostra: pendente.
+
+## 2026-09-24 — PDF sem camada textual: OCR necessário
+- NFS-e Salvador continuou retornando `O PDF não retornou texto` mesmo com parser atualizado.
+- Como a etapa `Extrair texto do PDF` já funcionou em outra NF e aqui retorna vazio, o documento deve ser tratado como PDF sem texto copiável / imagem.
+- Definido fallback: `Extrair imagens do PDF` → Windows OCR (Português) → concatenar em `ExtractedPDFText` → reutilizar o mesmo parser.
+- Guia: `desktop/PAD_OCR_FALLBACK.md`.
+- Estado: implementado em documentação, runtime OCR pendente.
