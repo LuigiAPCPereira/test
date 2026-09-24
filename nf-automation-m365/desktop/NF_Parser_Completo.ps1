@@ -38,7 +38,7 @@ try {
         foreach ($pattern in $patterns) {
             $m = [regex]::Match($text, $pattern, $rxOptions)
             if ($m.Success -and $m.Groups.Count -gt $group) {
-                return (($m.Groups[$group].Value -replace "\\s+", " ").Trim())
+                return (($m.Groups[$group].Value -replace "\s+", " ").Trim())
             }
         }
         return ""
@@ -46,14 +46,14 @@ try {
 
     function Clean-Company([string]$value) {
         if ([string]::IsNullOrWhiteSpace($value)) { return "" }
-        $v = ($value -replace "\\s+", " ").Trim([char[]]" -:")
-        $v = $v -replace "\\s+(CPF|CNPJ|NIF)\\s*$", ""
+        $v = ($value -replace "\s+", " ").Trim([char[]]" -:")
+        $v = $v -replace "\s+(CPF|CNPJ|NIF)\s*$", ""
         return $v.Trim()
     }
 
     function Normalize-Digits([string]$value) {
         if ([string]::IsNullOrWhiteSpace($value)) { return "" }
-        return ($value -replace "\\D", "")
+        return ($value -replace "\D", "")
     }
 
     function Date-ToIso([string]$value) {
@@ -67,7 +67,7 @@ try {
 
     function Money-ToInvariant([string]$value) {
         if ([string]::IsNullOrWhiteSpace($value)) { return "" }
-        $normalized = ($value -replace "\\.", "") -replace ",", "."
+        $normalized = ($value -replace "\.", "") -replace ",", "."
         $number = 0D
         if ([decimal]::TryParse($normalized, [Globalization.NumberStyles]::Number, [Globalization.CultureInfo]::InvariantCulture, [ref]$number)) {
             return $number.ToString("0.00", [Globalization.CultureInfo]::InvariantCulture)
@@ -78,7 +78,7 @@ try {
     function Cnpj-NearCompany([string]$company) {
         if ([string]::IsNullOrWhiteSpace($company)) { return "" }
         $companyHits = [regex]::Matches($text, [regex]::Escape($company), [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
-        $cnpjHits = [regex]::Matches($text, "\\b\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}\\b")
+        $cnpjHits = [regex]::Matches($text, "\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b")
         $best = ""
         $bestDistance = [int]::MaxValue
         foreach ($companyHit in $companyHits) {
@@ -99,12 +99,12 @@ try {
         $start = $label.Index
         $length = [Math]::Min($window, $text.Length - $start)
         $section = $text.Substring($start, $length)
-        $moneyHits = [regex]::Matches($section, "(?<!\\d)(?:\\d{1,3}(?:\\.\\d{3})+|\\d+),\\d{2}(?!\\d)")
+        $moneyHits = [regex]::Matches($section, "(?<!\d)(?:\d{1,3}(?:\.\d{3})+|\d+),\d{2}(?!\d)")
         if ($moneyHits.Count -eq 0) { return "" }
         $bestRaw = ""
         $bestValue = -1D
         foreach ($hit in $moneyHits) {
-            $normalized = ($hit.Value -replace "\\.", "") -replace ",", "."
+            $normalized = ($hit.Value -replace "\.", "") -replace ",", "."
             $number = 0D
             if ([decimal]::TryParse($normalized, [Globalization.NumberStyles]::Number, [Globalization.CultureInfo]::InvariantCulture, [ref]$number)) {
                 if ($number -gt $bestValue) {
@@ -132,80 +132,80 @@ try {
     $ValorLiquido = ""
 
     if ($TipoDocumento -eq "NFSE") {
-        $numeroSerie = [regex]::Match($text, "N[ÚU]MERO\\s*/\\s*S[ÉE]RIE\\s*[:\\-]?\\s*([0-9.]+)\\s*/\\s*([A-Z0-9.\\-]+)", $rxOptions)
+        $numeroSerie = [regex]::Match($text, "N[ÚU]MERO\s*/\s*S[ÉE]RIE\s*[:\-]?\s*([0-9.]+)\s*/\s*([A-Z0-9.\-]+)", $rxOptions)
         if ($numeroSerie.Success) {
             $NumeroNF = $numeroSerie.Groups[1].Value.Trim()
             $Serie = $numeroSerie.Groups[2].Value.Trim()
         }
         if (-not $NumeroNF) {
             $NumeroNF = First-Group @(
-                "N[ÚU]MERO\\s+(?:DA\\s+)?(?:NFS-?E|NFSE|NF)\\s*[:\\-]?\\s*([0-9.]+)",
-                "N[ÚU]MERO\\s*[:\\-]\\s*([0-9.]+)"
+                "N[ÚU]MERO\s+(?:DA\s+)?(?:NFS-?E|NFSE|NF)\s*[:\-]?\s*([0-9.]+)",
+                "N[ÚU]MERO\s*[:\-]\s*([0-9.]+)"
             )
         }
         if (-not $Serie) {
-            $Serie = First-Group @("^\\s*S[ÉE]RIE\\s*[:\\-]?\\s*([A-Z0-9.\\-]+)\\s*$")
+            $Serie = First-Group @("^\s*S[ÉE]RIE\s*[:\-]?\s*([A-Z0-9.\-]+)\s*$")
         }
         $DataEmissao = First-Group @(
-            "DATA\\s+(?:E\\s+HORA\\s+)?DE\\s+EMISS[AÃ]O\\s*[:\\-]?\\s*([0-3]\\d/[01]\\d/\\d{4})",
-            "EMISS[AÃ]O[\\s\\S]{0,80}?([0-3]\\d/[01]\\d/\\d{4})"
+            "DATA\s+(?:E\s+HORA\s+)?DE\s+EMISS[AÃ]O\s*[:\-]?\s*([0-3]\d/[01]\d/\d{4})",
+            "EMISS[AÃ]O[\s\S]{0,80}?([0-3]\d/[01]\d/\d{4})"
         )
         $EmpresaPrestadora = Clean-Company (First-Group @(
-            "EMITENTE\\s+PRESTADOR(?:\\s+DO\\s+SERVI[CÇ]O)?[\\s\\S]{0,700}?NOME\\s*/\\s*NOME\\s+EMPRESARIAL\\s*[\\r\\n ]+([^\\r\\n]+)",
-            "PRESTADOR\\s+DO\\s+SERVI[CÇ]O[\\s\\S]{0,500}?NOME\\s*/\\s*NOME\\s+EMPRESARIAL\\s*[\\r\\n ]+([^\\r\\n]+)"
+            "EMITENTE\s+PRESTADOR(?:\s+DO\s+SERVI[CÇ]O)?[\s\S]{0,700}?NOME\s*/\s*NOME\s+EMPRESARIAL\s*[\r\n ]+([^\r\n]+)",
+            "PRESTADOR\s+DO\s+SERVI[CÇ]O[\s\S]{0,500}?NOME\s*/\s*NOME\s+EMPRESARIAL\s*[\r\n ]+([^\r\n]+)"
         ))
         $CNPJPrestadora = First-Group @(
-            "EMITENTE\\s+PRESTADOR[\\s\\S]{0,500}?(?:CPF\\s*/\\s*CNPJ\\s*/\\s*NIF|CNPJ)\\s*[:\\-]?\\s*(\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2})"
+            "EMITENTE\s+PRESTADOR[\s\S]{0,500}?(?:CPF\s*/\s*CNPJ\s*/\s*NIF|CNPJ)\s*[:\-]?\s*(\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})"
         )
         if (-not $CNPJPrestadora) { $CNPJPrestadora = Cnpj-NearCompany $EmpresaPrestadora }
 
         $EmpresaTomadora = Clean-Company (First-Group @(
-            "TOMADOR\\s+DO\\s+SERVI[CÇ]O[\\s\\S]{0,700}?NOME\\s*/\\s*NOME\\s+EMPRESARIAL\\s*[\\r\\n ]+([^\\r\\n]+)",
-            "TOMADOR[\\s\\S]{0,500}?NOME\\s*/\\s*NOME\\s+EMPRESARIAL\\s*[\\r\\n ]+([^\\r\\n]+)"
+            "TOMADOR\s+DO\s+SERVI[CÇ]O[\s\S]{0,700}?NOME\s*/\s*NOME\s+EMPRESARIAL\s*[\r\n ]+([^\r\n]+)",
+            "TOMADOR[\s\S]{0,500}?NOME\s*/\s*NOME\s+EMPRESARIAL\s*[\r\n ]+([^\r\n]+)"
         ))
         $ValorLiquido = First-Group @(
-            "VALOR\\s+L[ÍI]QUIDO\\s+DA\\s+NFS-?E\\s*(?:\\(R\\$\\))?\\s*[:\\-]?\\s*((?:\\d{1,3}(?:\\.\\d{3})+|\\d+),\\d{2})",
-            "VALOR\\s+L[ÍI]QUIDO[\\s\\S]{0,80}?((?:\\d{1,3}(?:\\.\\d{3})+|\\d+),\\d{2})"
+            "VALOR\s+L[ÍI]QUIDO\s+DA\s+NFS-?E\s*(?:\(R\$\))?\s*[:\-]?\s*((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})",
+            "VALOR\s+L[ÍI]QUIDO[\s\S]{0,80}?((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})"
         )
     }
     else {
         $NumeroNF = First-Group @(
-            "^\\s*N[º°O]\\s*[:\\-]?\\s*([0-9]{1,3}(?:\\.[0-9]{3})+|[0-9]{3,})\\s*$",
-            "\\bN[º°O]\\s*[:\\-]?\\s*([0-9]{1,3}(?:\\.[0-9]{3})+|[0-9]{3,})\\b"
+            "^\s*N[º°O]\s*[:\-]?\s*([0-9]{1,3}(?:\.[0-9]{3})+|[0-9]{3,})\s*$",
+            "\bN[º°O]\s*[:\-]?\s*([0-9]{1,3}(?:\.[0-9]{3})+|[0-9]{3,})\b"
         )
         $Serie = First-Group @(
-            "^\\s*S[ÉE]RIE\\s*[:\\-]?\\s*([A-Z0-9.\\-]+)\\s*$",
-            "S[ÉE]RIE\\s*[:\\-]?\\s*([A-Z0-9.\\-]+)"
+            "^\s*S[ÉE]RIE\s*[:\-]?\s*([A-Z0-9.\-]+)\s*$",
+            "S[ÉE]RIE\s*[:\-]?\s*([A-Z0-9.\-]+)"
         )
         $DataEmissao = First-Group @(
-            "DATA\\s+DA\\s+EMISS[AÃ]O[\\s\\S]{0,400}?([0-3]\\d/[01]\\d/\\d{4})",
-            "PROTOCOLO\\s+DE\\s+AUTORIZA[CÇ][AÃ]O[\\s\\S]{0,180}?([0-3]\\d/[01]\\d/\\d{4})"
+            "DATA\s+DA\s+EMISS[AÃ]O[\s\S]{0,400}?([0-3]\d/[01]\d/\d{4})",
+            "PROTOCOLO\s+DE\s+AUTORIZA[CÇ][AÃ]O[\s\S]{0,180}?([0-3]\d/[01]\d/\d{4})"
         )
         $EmpresaPrestadora = Clean-Company (First-Group @(
-            "^\\s*RECEBEMOS\\s+DE\\s+(.+?)\\s+OS\\s+PRODUTOS/SERVI[CÇ]OS",
-            "RECEBEMOS\\s+DE\\s+(.+?)\\s+OS\\s+PRODUTOS/SERVI[CÇ]OS"
+            "^\s*RECEBEMOS\s+DE\s+(.+?)\s+OS\s+PRODUTOS/SERVI[CÇ]OS",
+            "RECEBEMOS\s+DE\s+(.+?)\s+OS\s+PRODUTOS/SERVI[CÇ]OS"
         ))
         $CNPJPrestadora = Cnpj-NearCompany $EmpresaPrestadora
         if (-not $CNPJPrestadora) {
             $CNPJPrestadora = First-Group @(
-                "(?:CNPJ|CNPJ/CPF)\\s*[:\\-]?\\s*(\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2})"
+                "(?:CNPJ|CNPJ/CPF)\s*[:\-]?\s*(\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})"
             )
         }
         $EmpresaTomadora = Clean-Company (First-Group @(
-            "IDENTIFICA[CÇ][AÃ]O\\s+E\\s+ASSINATURA\\s+DO\\s+RECEBEDOR:\\s*([^\\r\\n]+?)(?:\\s+ME)?\\s*-\\s*CNPJ",
-            "DESTINAT[ÁA]RIO/REMETENTE[\\s\\S]{0,650}?NOME/RAZ[AÃ]O\\s+SOCIAL[\\s\\S]{0,180}?([A-Z][A-Z0-9 .&/\\-]{4,})"
+            "IDENTIFICA[CÇ][AÃ]O\s+E\s+ASSINATURA\s+DO\s+RECEBEDOR:\s*([^\r\n]+?)(?:\s+ME)?\s*-\s*CNPJ",
+            "DESTINAT[ÁA]RIO/REMETENTE[\s\S]{0,650}?NOME/RAZ[AÃ]O\s+SOCIAL[\s\S]{0,180}?([A-Z][A-Z0-9 .&/\-]{4,})"
         ))
-        $ValorLiquido = Max-MoneyAfter "VALOR\\s+TOTAL\\s+DA\\s+NOTA" 420
+        $ValorLiquido = Max-MoneyAfter "VALOR\s+TOTAL\s+DA\s+NOTA" 420
         if (-not $ValorLiquido) {
             $ValorLiquido = First-Group @(
-                "VALOR\\s+L[ÍI]QUIDO[\\s\\S]{0,100}?((?:\\d{1,3}(?:\\.\\d{3})+|\\d+),\\d{2})"
+                "VALOR\s+L[ÍI]QUIDO[\s\S]{0,100}?((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})"
             )
         }
     }
 
     if (-not $CNPJPrestadora -and $EmpresaPrestadora) { $CNPJPrestadora = Cnpj-NearCompany $EmpresaPrestadora }
     if (-not $DataEmissao) {
-        $DataEmissao = First-Group @("\\b([0-3]\\d/[01]\\d/\\d{4})\\b")
+        $DataEmissao = First-Group @("\b([0-3]\d/[01]\d/\d{4})\b")
     }
 
     $NumeroNFNormalizado = Normalize-Digits $NumeroNF
