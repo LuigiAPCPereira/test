@@ -60,3 +60,11 @@
 - O parser sinaliza campos ausentes em vez de preencher por suposição.
 - Validação estática dos padrões foi feita contra amostras representativas transcritas das NFs observadas; execução real do bloco no PAD ainda pendente.
 - Ação `Atualizar item` não foi gerada porque os nomes internos das colunas fiscais do SharePoint ainda não foram confirmados.
+
+## 2026-09-24 — Correção de compatibilidade do parser PAD
+- Ao colar o parser, o designer reportou: módulo `Scripting`/ação `RunPowershellScript` não encontrado.
+- A variável `ParserJson` ficou ausente como erro em cascata.
+- Causa: namespace interno incorreto no bloco Robin gerado.
+- Correção: `System.RunPowershellScript`.
+- O acesso ao SharePoint corporativo não será conectado ao ChatGPT; nomes internos de colunas serão obtidos por artefato/export autorizado.
+- Próxima validação: colar a revisão corrigida e executar novamente.
