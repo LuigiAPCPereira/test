@@ -5,7 +5,7 @@
 | T-001 | M1 | Bootstrap documental e arquitetura inicial | validada | nenhuma | pacote v0.1/v0.2 + escopo da conversa |
 | T-002 | M1 | Obter Solution não gerenciada real do tenant | validada | T-001 | `ControledenotasFiscais_1_0_0_1.zip`, Managed=0, publisher cnf |
 | T-003 | M1 | Parametrizar referências e corrigir idempotência | implementada não validada | T-002 | candidate 1.1.0.0 gerado; smoke de import pendente |
-| T-004 | M1 | Adicionar fluxo Cloud imediato por arquivo selecionado | implementada não validada | T-002 | 0.1.0.0 falhou na ativação por serialização do trigger; correção 0.1.1.0 gerada, reimport/smoke pendentes |
+| T-004 | M1 | Adicionar fluxo Cloud imediato por arquivo selecionado | implementada não validada | T-002 | 0.1.1.0 ativa, mas não aparece no menu SharePoint; 0.1.2.0 fixa binding do trigger ao site/biblioteca, reimport pendente |
 | T-005 | M2 | Validar engine de extração fiscal Cloud | pendente | T-003 | deve extrair data, emitente, número/série e valor em NFs reais autorizadas |
 | T-006 | M2 | Mapear colunas fiscais reais da lista | pendente | T-005 | nomes internos/contratos observados, sem inferência |
 | T-007 | M2 | Atualizar registro com campos fiscais sem tocar OS/validade | pendente | T-005,T-006 | smoke em NF de teste |
