@@ -1,0 +1,36 @@
+<ImportExportXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="9.2.26083.167" SolutionPackageVersion="9.2" languagecode="1046" generatedBy="CrmLive" OrganizationVersion="9.2.26083.167" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26084.00167">
+  <SolutionManifest>
+    <UniqueName>ControledenotasFiscaisTestCandidate</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="Controle de Notas Fiscais - Test Candidate" languagecode="1046" />
+    </LocalizedNames>
+    <Descriptions />
+    <Version>0.1.0.0</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>ControleNotasFiscais</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="Controle de Notas Fiscais" languagecode="1046" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress xsi:nil="true" />
+      <SupportingWebsiteUrl xsi:nil="true" />
+      <CustomizationPrefix>cnf</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>76875</CustomizationOptionValuePrefix>
+      <Addresses>
+        <Address><AddressNumber>1</AddressNumber><AddressTypeCode>1</AddressTypeCode><City xsi:nil="true" /><County xsi:nil="true" /><Country xsi:nil="true" /><Fax xsi:nil="true" /><FreightTermsCode xsi:nil="true" /><ImportSequenceNumber xsi:nil="true" /><Latitude xsi:nil="true" /><Line1 xsi:nil="true" /><Line2 xsi:nil="true" /><Line3 xsi:nil="true" /><Longitude xsi:nil="true" /><Name xsi:nil="true" /><PostalCode xsi:nil="true" /><PostOfficeBox xsi:nil="true" /><PrimaryContactName xsi:nil="true" /><ShippingMethodCode>1</ShippingMethodCode><StateOrProvince xsi:nil="true" /><Telephone1 xsi:nil="true" /><Telephone2 xsi:nil="true" /><Telephone3 xsi:nil="true" /><TimeZoneRuleVersionNumber xsi:nil="true" /><UPSZone xsi:nil="true" /><UTCOffset xsi:nil="true" /><UTCConversionTimeZoneCode xsi:nil="true" /></Address>
+        <Address><AddressNumber>2</AddressNumber><AddressTypeCode>1</AddressTypeCode><City xsi:nil="true" /><County xsi:nil="true" /><Country xsi:nil="true" /><Fax xsi:nil="true" /><FreightTermsCode xsi:nil="true" /><ImportSequenceNumber xsi:nil="true" /><Latitude xsi:nil="true" /><Line1 xsi:nil="true" /><Line2 xsi:nil="true" /><Line3 xsi:nil="true" /><Longitude xsi:nil="true" /><Name xsi:nil="true" /><PostalCode xsi:nil="true" /><PostOfficeBox xsi:nil="true" /><PrimaryContactName xsi:nil="true" /><ShippingMethodCode>1</ShippingMethodCode><StateOrProvince xsi:nil="true" /><Telephone1 xsi:nil="true" /><Telephone2 xsi:nil="true" /><Telephone3 xsi:nil="true" /><TimeZoneRuleVersionNumber xsi:nil="true" /><UPSZone xsi:nil="true" /><UTCOffset xsi:nil="true" /><UTCConversionTimeZoneCode xsi:nil="true" /></Address>
+      </Addresses>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="29" id="{75726d84-93a5-5b4a-a951-6bbe4ee98bbe}" behavior="0" />
+      <RootComponent type="29" id="{22bb6690-9a70-547e-8ba0-a33be71d6904}" behavior="0" />
+      <RootComponent type="380" schemaName="cnf_SharePointSiteURL" behavior="0" />
+      <RootComponent type="380" schemaName="cnf_DocumentLibraryId" behavior="0" />
+      <RootComponent type="380" schemaName="cnf_InputFolderPath" behavior="0" />
+      <RootComponent type="380" schemaName="cnf_ControlListId" behavior="0" />
+      <RootComponent type="380" schemaName="cnf_InitialStatus" behavior="0" />
+    </RootComponents>
+    <MissingDependencies />
+  </SolutionManifest>
+</ImportExportXml>
