@@ -36,3 +36,11 @@
 - Segunda execução sobre o mesmo PDF não criou item duplicado.
 - Resultado: T-003 e T-004 validadas.
 - Próxima ação: T-005, avaliar/validar engine de extração dos campos fiscais.
+
+## 2026-09-24 — AI Builder disponível, sem capacidade
+- Ação `Processar faturas` encontrada no ambiente.
+- Fluxo de teste manual com entrada de arquivo foi executado.
+- A ação falhou informando ausência de capacidade de Crédito do Copilot ou créditos do AI Builder no ambiente.
+- Nenhum trial, compra ou mudança administrativa foi realizada.
+- Consequência: AI Builder não é engine utilizável neste ambiente no estado atual.
+- Próximo teste de T-005: Power Automate Desktop, extração nativa de texto de PDF.
