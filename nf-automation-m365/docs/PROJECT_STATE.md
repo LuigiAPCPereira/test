@@ -17,3 +17,5 @@
 - Parser PowerShell corrigido: 234 ocorrências de escape Robin duplicado foram normalizadas para regex PowerShell real (ex.: `\\s` → `\s`, `\\d` → `\d`). A execução anterior reconhecer `NFE` mas não extrair nenhum campo é consistente com esse defeito.
 
 - Nova amostra: NFS-e municipal de Salvador. Parser ampliado com fallbacks para `Número da Nota`, seções `PRESTADOR DE SERVIÇOS` / `TOMADOR DE SERVIÇOS` e `VALOR TOTAL DA NOTA - R$`. Implementado, runtime nessa amostra ainda pendente.
+
+- Segundo PDF (NFS-e Salvador) não possui camada textual utilizável no teste: `ExtractedPDFText` vazio. Parser não é a causa. Fallback OCR local desenhado em `desktop/PAD_OCR_FALLBACK.md`; smoke pendente.
