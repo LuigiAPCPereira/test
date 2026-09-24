@@ -68,3 +68,10 @@
 - Correção: `System.RunPowershellScript`.
 - O acesso ao SharePoint corporativo não será conectado ao ChatGPT; nomes internos de colunas serão obtidos por artefato/export autorizado.
 - Próxima validação: colar a revisão corrigida e executar novamente.
+
+## 2026-09-24 — Robin incompatível com ação PowerShell do tenant
+- V2 Robin também falhou: módulo `System` / ação `RunPowershellScript` não reconhecida no importador.
+- `ParserJson` ausente foi erro em cascata.
+- A documentação oficial confirma que a ação visual `Executar script do PowerShell` existe no PAD; o problema é o identificador Robin/portabilidade, não a capacidade de script em si.
+- Criado `desktop/NF_Parser_Completo.ps1`.
+- Criado `desktop/PAD_MANUAL_SETUP.md` com montagem manual da única ação problemática.
