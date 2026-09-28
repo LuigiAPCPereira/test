@@ -157,3 +157,20 @@ def test_atomic_replace_failure_preserves_existing_file_and_cleans_temp(
 
     assert path.read_bytes() == before
     assert list(tmp_path.glob(".*.tmp.xlsx")) == []
+
+
+def test_external_text_is_never_saved_as_excel_formula(tmp_path: Path) -> None:
+    from dataclasses import replace
+
+    path = tmp_path / "safe.xlsx"
+    value = '=HYPERLINK("https://invalid.example", "click")'
+    item = replace(extraction(filename="=1+1.pdf"), issuer_name=value, invoice_number="=2+2")
+    store(path).upsert(item)
+    workbook = load_workbook(path)
+    try:
+        for address, expected in [("A2", "=1+1.pdf"), ("F2", value), ("C2", "=2+2")]:
+            cell = workbook["Notas Fiscais"][address]
+            assert cell.value == expected
+            assert cell.data_type == "s"
+    finally:
+        workbook.close()

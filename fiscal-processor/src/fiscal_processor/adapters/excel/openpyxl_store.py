@@ -114,7 +114,11 @@ class OpenpyxlInvoiceStore:
                     f"worksheet {self.SHEET_NAME!r} not found in existing workbook"
                 )
             worksheet = workbook[self.SHEET_NAME]
-            self._validate_headers(worksheet)
+            try:
+                self._validate_headers(worksheet)
+            except Exception:
+                workbook.close()
+                raise
             return workbook, worksheet
 
         workbook = Workbook()
@@ -177,7 +181,11 @@ class OpenpyxlInvoiceStore:
         for column, value in values.items():
             if column in self.MANUAL_COLUMNS:
                 raise AssertionError("automatic writer must never own manual columns")
-            worksheet.cell(row, column).value = value
+            cell = worksheet.cell(row, column)
+            cell.value = value
+            if isinstance(value, str):
+                # PDF text and filenames are data, never executable Excel formulas.
+                cell.data_type = "s"
 
         worksheet.cell(row, 3).number_format = "@"
         worksheet.cell(row, 4).number_format = "@"

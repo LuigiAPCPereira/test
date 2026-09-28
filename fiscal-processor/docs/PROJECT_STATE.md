@@ -21,7 +21,7 @@ DPIs, página sem texto, PDF inválido, buffer independente após close e limite
 Limites configuráveis: 500 páginas e 40 milhões de pixels; DPI inteiro 1–600.
 Dimensionamento usa a mesma ordem de operações float do PDFium: ceil(points * scale).
 Ruff check/format, mypy src e compileall PASS. FP-002 também teve gates revalidados.
-FP-006 mantém cinco testes reais PASS.
+FP-006 mantém seis testes reais PASS, incluindo texto externo como literal (sem fórmula).
 
 ## Limites de evidência
 Não há prova de ausência de todos os vazamentos nativos; limites de pixels não

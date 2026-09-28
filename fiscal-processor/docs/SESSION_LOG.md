@@ -83,3 +83,10 @@ Resultado: **5/5 PASS**.
 - Protocolo: usuário informou COMPLETE; índice Notion STAGING está desatualizado.
 - Próxima tarefa FP-004; runtime Windows e memória nativa de longa duração não validados.
 - Commit: identificado no histórico pela mensagem FP-003: validate real PDFium integration and bound rendering.
+
+## 2026-09-28 — FP-006 texto externo no Excel
+- Teste real reproduziu fórmula involuntária em nome de arquivo/emitente/número iniciado com `=`.
+- Writer agora força strings automáticas como texto XLSX, mantendo valor literal.
+- Também fecha workbook quando validação de cabeçalho lança erro.
+- Teste de regressão PASS junto às invariantes existentes; nenhum campo manual alterado.
+- Commit: FP-006: keep extracted text literal in Excel cells.
