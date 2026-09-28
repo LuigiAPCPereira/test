@@ -5,6 +5,7 @@
 - Repositório: `LuigiAPCPereira/test`
 - Branch ativa deste produto: `feat/fiscal-processor-local-v0.1`
 - Base: `main`
+- Draft PR: #4 — `Bootstrap Fiscal Processor local-only architecture`
 - Protótipo anterior: Draft PR #3 em `feat/nf-automation-m365-v0.3`; não é dependência e não foi mergeado.
 
 ## Fontes de processo
@@ -16,22 +17,29 @@
 
 ## Tarefa atual
 
-**FP-001 — Pesquisa local-only + arquitetura inicial**
+**FP-002 — Bootstrap Python e contratos de domínio**
 
-Estado: **CONCLUÍDA / VALIDADA DOCUMENTALMENTE**.
+Estado: **CONCLUÍDA / VALIDADA PARCIALMENTE**.
 
 Evidências:
-- arquitetura local-only definida;
-- SharePoint/Power Automate/LLM removidos do runtime alvo;
-- PDF candidate selecionado por pesquisa: pypdfium2/PDFium;
-- OCR permanece decisão experimental Tesseract vs RapidOCR;
-- Excel operacional definido com SHA-256 oculto e preservação de campos manuais;
-- frontend modelado por estados antes de toolkit;
-- distribuição inicial definida como Windows `onedir` via CI.
+- `pyproject.toml` criado com Python 3.11+ e gates dev explícitos;
+- pacote `src/fiscal_processor/` criado;
+- estados explícitos para tipo de documento, modo de extração, processamento e quality flags;
+- `FiscalExtraction` separado de `ManualFields`, preservando ownership de OS/validade/observações;
+- validação determinística de CNPJ com dígitos verificadores;
+- parsing de datas suportadas e valores monetários BRL;
+- `tests/fixtures/README.md` proíbe dados corporativos reais no repositório;
+- 16 testes unitários executados: **PASS**;
+- `python -m compileall -q src`: **PASS**;
+- `ruff` e `mypy`: **DOCUMENTADOS MAS NÃO REVALIDADOS** nesta sessão porque os módulos não estavam instalados no ambiente de execução.
+
+Commit de implementação:
+- `ab95f45045f7f4e6f813c5100e7914931350a4e5`
 
 ## Desconhecidos relevantes
 
 - Qual OCR vence o corpus fiscal.
+- Qualidade real do pypdfium2 nos layouts fiscais do domínio.
 - Se o executável não assinado passa pelas políticas da máquina corporativa.
 - Toolkit visual final.
 - Baseline real de performance.
@@ -39,6 +47,12 @@ Evidências:
 
 ## Próxima ação
 
-**FP-002 — Bootstrap Python e contratos de domínio.**
+**FP-003 — Adapter PDFium para texto + render.**
 
-Criar `pyproject.toml`, layout `src/`, modelos/estados sem dependência de infraestrutura, fixtures sintéticas mínimas e gates locais. Não iniciar GUI antes de o core processar documentos por teste.
+Implementar boundary PDF sem OCR:
+1. abrir PDF por pypdfium2;
+2. extrair texto e caixas por página;
+3. rasterizar página para memória;
+4. criar fixtures sintéticas de PDF textual;
+5. testar erro/corrupção e páginas sem texto;
+6. não introduzir OCR ainda.
