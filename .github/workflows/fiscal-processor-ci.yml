@@ -6,7 +6,7 @@ on:
       - 'fiscal-processor/**'
       - '.github/workflows/fiscal-processor-ci.yml'
   push:
-    branches: [main, feat/fiscal-processor-local-v0.1]
+    branches: [main]
     paths:
       - 'fiscal-processor/**'
       - '.github/workflows/fiscal-processor-ci.yml'

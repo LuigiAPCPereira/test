@@ -86,3 +86,8 @@ remonta tabelas achatadas. 83 testes locais PASS, incluindo PDFium→parser.
 Workflow Fiscal Processor CI verifica Linux/Windows em PR/push e pode ser
 acionado manualmente quando disponível na branch padrão. Build wheel é teste
 de empacotamento Python, não o executável portátil final.
+
+`parse_spans` agora associa labels/valores por posição e contexto de seção, com
+`PdfiumAdapter.extract_spans` como entrada nativa. 96 testes locais PASS.
+CI hospedado está bloqueado por faturamento/limite de gastos, conforme mensagem
+informada pelo titular; execução Windows ainda não validada.

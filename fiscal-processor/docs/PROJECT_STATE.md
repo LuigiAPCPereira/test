@@ -62,17 +62,31 @@ PDF/OCR nem filesystem. DANFE com labels explícitos e NFS-e com contexto de
 prestador/tomador. Número/série combinados, data/hora, CNPJ com dígitos verificadores,
 valor monetário estrito; ausência/duplicidade/invalidez gera REVIEW e campo vazio.
 83 testes PASS no Linux, incluindo PDFium real → parser.
-Não suporta ainda tabelas achatadas, remontagem espacial, OCR integrado ou layouts
-municipais em geral. Foto de referência não foi processada pela engine.
+A integração espacial posterior abaixo amplia esta primeira versão. OCR integrado
+e layouts municipais em geral ainda não validados; foto não processada pela engine.
 
 ## CI
 Workflow `.github/workflows/fiscal-processor-ci.yml`: PR/push/manual, Python 3.12,
 Ubuntu 24.04 e Windows 2022; Ruff, mypy, pytest, compileall e build wheel.
 Actions fixadas em SHA, permissão contents:read, sem secrets/deploy/documentos reais.
-Execução remota ainda deve ser consultada no commit publicado; configuração não
-é prova de CI verde. Wheel não é pacote portátil Windows.
+Run 36432485526 falhou antes de iniciar jobs. Usuário confirmou a annotation:
+pagamentos recentes falharam ou limite de gastos precisa de ajuste. Causa externa
+à execução do código; não corrigida e nenhuma configuração de cobrança alterada.
+Não repetir runs até resolver a conta. Windows ainda não validado.
+Push restrito a main; PR verifica branch de trabalho sem execução duplicada.
+Wheel não é pacote portátil Windows.
+
+## FP-005 — integração espacial
+`TextSpan` é evidência neutra em pontos PDF com origem superior esquerda.
+`PdfiumAdapter.extract_spans` converte coordenadas nativas; `parse_spans` associa
+rótulo/valor na mesma página/coluna e resolve nomes/CNPJ por seção. Não atravessa
+cabeçalhos nem herda seção de outra página; múltiplos candidatos geram revisão.
+96 testes locais PASS (13 novos); seis PDFs sintéticos exercitam o parser real.
+Limites explícitos: valores até 22 pontos abaixo, alinhamento até oito pontos,
+labels inteiros; nomes quebrados e tabelas complexas podem exigir revisão.
 
 ## Próxima ação
-FP-005: integrar caixas/ordem de leitura ao parser e adapter OCR small local;
-depois FP-007 (processamento PDF→Excel e CLI). Consultar CI e corrigir falhas reais.
+Integrar adapter OCR small local ao mesmo contrato TextSpan, sem downloads em
+runtime, e orquestrar fallback por página. Depois FP-007 (PDF→Excel e CLI).
+CI hospedado aguarda correção da conta pelo titular; não bloqueia trabalho local.
 Validação corporativa mantém sequência ADR-002, sem exigir Python do usuário.

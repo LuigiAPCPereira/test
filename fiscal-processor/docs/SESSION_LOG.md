@@ -154,3 +154,13 @@ registrada a sequência corrigida no plano, sem acrescentar novo bloqueio.
 - Próximo: consultar CI publicado e integrar evidências PDF/OCR ao parser.
 - Retrospectiva: total líquido/base não devem substituir total fiscal; regressão
   instalada em teste determinístico, fixture inteiramente sintética.
+
+## 2026-09-28 — FP-005 posições e bloqueio externo de CI
+- Base 24f5bd2; usuário confirmou annotation de billing/spending limit. Não há
+  prova de falha de código no CI; nenhum pagamento/limite alterado.
+- Contrato TextSpan, conversão PDFium e parser espacial com seção/coluna/página.
+- 13 regressões novas, 96 testes PASS; Ruff/mypy/compileall PASS.
+- CI mantém PR e push main, elimina duplicação push branch + PR.
+- Retrospectiva: fronteiras de seção/página e candidatos ambíguos protegidos por
+  testes; causa externa de CI registrada no checkpoint, sem reexecuções inúteis.
+- Próximo bloco: adapter OCR small e fallback por página.

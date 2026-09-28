@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from fiscal_processor.domain.text import TextSpan
+
 
 class PdfAdapterError(RuntimeError):
     """Raised when a PDF cannot be opened or processed safely."""
@@ -91,6 +93,22 @@ class PdfiumAdapter:
             raise PdfAdapterError(f"failed to extract PDF: {Path(path).name}") from exc
         finally:
             pdf.close()
+
+    def extract_spans(self, path: str | Path) -> tuple[TextSpan, ...]:
+        """Return native evidence in the same top-left coordinate system as OCR."""
+        document = self.extract_document(path)
+        return tuple(
+            TextSpan(
+                block.text,
+                block.left,
+                page.height_points - block.top,
+                block.right,
+                page.height_points - block.bottom,
+                page.page_index,
+            )
+            for page in document.pages
+            for block in page.blocks
+        )
 
     def render_page(self, path: str | Path, page_index: int, *, dpi: int = 300) -> RenderedPage:
         if type(dpi) is not int or not 1 <= dpi <= 600:
