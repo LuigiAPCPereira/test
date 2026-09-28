@@ -27,20 +27,30 @@ A arquitetura v0.1 estabelece que documentos e dados fiscais permanecem na máqu
 🟢 Arquitetura e pesquisa inicial documentadas.  
 🟢 Núcleo de domínio Python implementado e testado (FP-002).  
 🟡 Adapter PDFium implementado e parcialmente validado (FP-003).  
+🟢 Adapter Excel idempotente validado com openpyxl real (FP-006).  
 ⚪ Integração real com pypdfium2 ainda precisa de smoke em ambiente com o wheel instalado.  
 ⚪ Runtime Windows sem admin ainda não validado.
 
+## Excel
+
+O workbook local usa SHA-256 oculto para idempotência. Reprocessamento pode atualizar campos fiscais automáticos, mas não escreve em:
+- Número da OS;
+- Validade;
+- Observações.
+
+O save é preparado em arquivo temporário e substitui o XLSX apenas após gravação bem-sucedida.
+
 ## Gates observados
 
-- suíte local atual: 24 PASS
-- `compileall`: PASS
-- `ruff`: não revalidado neste ambiente
-- `mypy`: não revalidado neste ambiente
-- integração real pypdfium2: pendente
+- FP-002: 16 testes unitários PASS
+- FP-003: testes locais/doubles PASS; integração pypdfium2 real pendente
+- FP-006: 5 testes reais com openpyxl 3.1.5 PASS
+- `compileall`: PASS nos blocos executados
+- `ruff`/`mypy`: não revalidados neste ambiente
 
 ## Próximo gate
 
-Revalidar FP-003 com `pypdfium2==5.13.0` instalado e só então iniciar o benchmark OCR FP-004.
+Revalidar FP-003 com `pypdfium2==5.13.0` instalado. Só então iniciar FP-004 / FiscalOCRBench.
 
 ## Documentação
 
