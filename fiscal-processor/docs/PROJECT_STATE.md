@@ -15,7 +15,7 @@
 - A publicação editorial central no Notion não foi revalidada nesta execução; não afirmar sincronização dessa cópia com uma release Notion atual.
 - `fiscal-processor/AGENTS.md` é o entrypoint local do subprojeto.
 
-## Tarefa atual
+## Trilha PDF atual
 
 **FP-003 — Adapter PDFium para texto + render**
 
@@ -24,25 +24,38 @@ Estado: **IMPLEMENTADA / VALIDADA PARCIALMENTE**.
 Evidências:
 - `pypdfium2==5.13.0` fixado no contrato do projeto;
 - adapter isolado em `adapters/pdf/pdfium.py`;
-- extração de texto inteiro via `get_text_bounded()`;
-- extração de objetos de texto e bounding boxes;
-- normalização de quebras CRLF;
+- extração de texto e bounding boxes implementada;
 - rasterização por DPI para buffer próprio em memória;
-- erros de abertura/render encapsulados em `PdfAdapterError`;
-- testes unitários com doubles validam lifecycle, cópia de buffer, bounds, normalização e falhas;
-- suíte local completa: **24 PASS**;
+- testes unitários com doubles validam lifecycle, buffer, bounds, normalização e falhas;
+- suíte local observada antes de FP-006: **24 PASS**;
 - `compileall`: **PASS**;
 - integração real com o wheel `pypdfium2`: **NÃO REVALIDADA** nesta sessão;
-- tentativa de GitHub Actions gerou runs sem runner/steps e sem logs recuperáveis; workflow removido para não manter sinal falso de CI.
+- tentativa de GitHub Actions gerou runs sem runner/steps; workflow removido.
 
-Commits relevantes:
-- `fd8b36d74bb261e367969c8f302037071c028ea6` — adapter + teste de integração sintético;
-- `81000b5f9eaf6275ca4568432bbe025f583c9365` — cobertura local com doubles;
-- `b573a560f3c68eef345b623f7e7044d072cdceae` — remoção do workflow indisponível.
+## Trilha Excel paralela
+
+**FP-006 — Adapter Excel idempotente**
+
+Estado: **CONCLUÍDA / VALIDADA**.
+
+Evidências:
+- `openpyxl==3.1.5` pinado;
+- workbook controlado `Controle_Notas_Fiscais.xlsx` com sheet `Notas Fiscais`;
+- colunas técnicas ocultas: `_sha256`, `_extraction_mode`, `_parser_id`, `_processed_at`;
+- SHA-256 é chave de upsert: mesma NF atualiza a mesma linha;
+- `Número da OS`, `Validade` e `Observações` não entram no writer automático;
+- save grava em temporário no mesmo diretório e usa `os.replace`;
+- falha de replace preserva o arquivo anterior e limpa o temporário;
+- workbook com contrato de cabeçalho desconhecido é recusado em vez de ser reescrito;
+- **5/5 testes reais com openpyxl 3.1.5: PASS**;
+- `compileall`: **PASS**.
+
+Commit:
+- `d2e829987c407b48ef28ba5f45ff30389e283c36`
 
 ## Desconhecidos relevantes
 
-- Qualidade real do pypdfium2 em PDFs fiscais reais/sintéticos executados com a biblioteca instalada.
+- Qualidade real do pypdfium2 em PDF sintético/real executado com a biblioteca instalada.
 - Qual OCR vence o corpus fiscal.
 - Se o executável não assinado passa pelas políticas da máquina corporativa.
 - Toolkit visual final.
@@ -51,6 +64,6 @@ Commits relevantes:
 
 ## Próxima ação segura
 
-**Revalidar FP-003 num ambiente com `pypdfium2==5.13.0` instalável**, executando o teste sintético real de texto + render.
+Revalidar **FP-003** num ambiente com `pypdfium2==5.13.0` instalável, executando o smoke sintético real de texto + render.
 
-Somente após esse smoke, promover FP-003 para validada e iniciar FP-004 como benchmark OCR dependente do adapter real.
+FP-004 permanece bloqueada por esse gate. FP-006 não está bloqueada e já foi validada de forma independente.
