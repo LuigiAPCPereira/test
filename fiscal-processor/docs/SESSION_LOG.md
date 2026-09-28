@@ -90,3 +90,25 @@ Resultado: **5/5 PASS**.
 - Também fecha workbook quando validação de cabeçalho lança erro.
 - Teste de regressão PASS junto às invariantes existentes; nenhum campo manual alterado.
 - Commit: FP-006: keep extracted text literal in Excel cells.
+
+## 2026-09-28 — FP-004 benchmark sintético executado
+- Harness implementado: corpus reproduzível, degradações, scorer exato, modelos
+  pinados/hash verificado, preparo separado e bloqueio Python de rede na inferência.
+- Small: 60 casos/476 de 480 campos; medium: 15 casos/120 de 120;
+  Tesseract por: 60 casos/459 de 480. Nenhum falso positivo na página branca.
+- Modelo medium completo interrompido; relatório compara apenas interseção150DPI.
+- Evidência/limitações e dados por amostra em RESEARCH-003 e benchmarks/results/.
+- 52 testes e gates estáticos PASS. Runtime Windows/corporativo não validado.
+- FP-004 parcial; preferência small reforçada, escolha final depende corpus espacial
+  e validação independente. Não iniciar FP-005 como se esse gate estivesse completo.
+- Commit: FP-004: add offline synthetic fiscal OCR benchmark.
+
+### Retomada e revisão antes da publicação
+HEAD remoto 6b7605f confirmado sem mudança concorrente. Arquivos e resultados
+preservados; dependências dev precisaram reinstalação após reinício do ambiente.
+52 testes novamente PASS (1,12 s), ruff check/format, mypy e compileall PASS.
+Benchmarks OCR não repetidos: resultados originais preservados em JSON.
+Revisão esclareceu que startup Tesseract é sondagem de versão, diferente do
+carregamento residente RapidOCR; latência por página Tesseract inclui subprocesso.
+Curator Pass: lições específicas registradas no README do benchmark (checkpoint,
+execução sequencial, métricas comparáveis); sem alteração no plugin/protocolo.

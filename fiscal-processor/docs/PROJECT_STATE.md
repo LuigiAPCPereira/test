@@ -3,7 +3,8 @@
 ## Ref observada e escopo
 - Repositório: LuigiAPCPereira/test
 - Branch: feat/fiscal-processor-local-v0.1; Draft PR #4; sem merge.
-- HEAD recuperado: 05d247e470931a8c0a38bb030c0fa4a19d3822e2.
+- HEAD inicial recuperado: 05d247e470931a8c0a38bb030c0fa4a19d3822e2.
+- Commits publicados: 1de8841 (FP-003), 6b7605f (FP-006).
 - Snapshot dos 32 arquivos do PR recuperado pelo plugin GitHub. Clone indisponível por autenticação; não há alegação de checkout Git local completo.
 - Escopo: Fiscal Processor local-only, separado do PR #3/M365.
 
@@ -28,6 +29,16 @@ Não há prova de ausência de todos os vazamentos nativos; limites de pixels n�
 são sandbox nem timeout de PDF malicioso. Windows, máquina corporativa,
 OCR e desempenho do produto completo não validados.
 
+## FP-004 — implementada / parcialmente validada
+Benchmark local com corpus sintético, degradações, scorer exato, hashes pinados,
+checkpoint por amostra e três engines executadas (135 amostras ao todo).
+Small 476/480 campos (60 casos); medium 120/120 (15 casos/150 DPI);
+Tesseract 459/480 (60 casos). Comparação comum/limites em RESEARCH-003.
+52 testes PASS + ruff check/format/mypy/compileall PASS no conjunto final.
+Small permanece candidato, sem seleção final nem runtime OCR do produto.
+
 ## Próxima ação
-FP-004: implementar corpus/benchmark OCR local e comparar engines por campos.
+FP-004: ampliar corpus espacial/negativos e repetir validação independente para
+seleção final. Não há alegação de bloqueio de acesso aos modelos; o gate pendente
+é a evidência insuficiente para qualidade fiscal representativa.
 FP-005 depende da escolha por evidência em FP-004; GUI/build aguardam core.

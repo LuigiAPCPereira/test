@@ -43,14 +43,16 @@ O save é preparado em arquivo temporário e substitui o XLSX apenas após grava
 ## Gates observados
 
 - FP-002: 16 testes unitários PASS
-- FP-003: integração real PASS; suíte completa: 44 testes PASS
-- FP-006: 5 testes reais com openpyxl 3.1.5 PASS
+- FP-003: integração real PASS; suíte final: 52 testes PASS
+- FP-006: 6 testes reais com openpyxl 3.1.5 PASS
 - `compileall`: PASS nos blocos executados
 - `ruff check`, `ruff format --check`, `mypy src`: PASS
 
 ## Próximo gate
 
-FP-004 / FiscalOCRBench: comparar engines locais por campos fiscais exatos. FP-003 liberou esse gate no Linux.
+FP-004 / FiscalOCRBench implementado e executado com small, medium e Tesseract.
+[Resultados e limitações](docs/RESEARCH-003-ocr-first-run.md). Próximo gate: ampliar
+corpus espacial e validar escolha da engine. Parsers/CLI ainda pendentes.
 
 ## Documentação
 
