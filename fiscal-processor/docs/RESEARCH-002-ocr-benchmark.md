@@ -167,3 +167,65 @@ Uma engine só vence se:
 - PaddleOCR multilingual PP-OCRv5: https://github.com/PaddlePaddle/PaddleOCR/blob/main/docs/version3.x/algorithm/PP-OCRv5/PP-OCRv5_multi_languages.en.md
 - RapidOCR model list: https://rapidai.github.io/RapidOCRDocs/main/model_list/
 - RapidOCR license/model provenance: https://github.com/RapidAI/RapidOCR
+
+
+## Recomendação após pesquisa atualizada — 2026-09-27
+
+### Candidato preferido para o runtime
+
+**RapidOCR 3.9.x + PP-OCRv6 small + ONNX Runtime (CPU)**.
+
+Esta é uma recomendação de arquitetura baseada em pesquisa, não uma validação no corpus fiscal.
+
+Motivos:
+- PP-OCRv6 foi lançado em 2026 e oferece modelo único multilíngue com suporte explícito a português.
+- A variante `small` equilibra qualidade e footprint: detecção ~9,6 MB e reconhecimento ~20,4 MB nos artefatos oficiais PaddleOCR, enquanto `medium` usa ~59,4 MB + ~73,3 MB.
+- Os números publicados para PP-OCRv6 colocam `small` próximo de `medium` em detecção/reconhecimento, com diferença de poucos pontos percentuais no conjunto interno, mas bundle muito menor.
+- RapidOCR 3.9.2 oferece PP-OCRv6 tiny/small/medium diretamente em ONNX, com ONNX Runtime como backend e hashes SHA-256 dos modelos.
+- RapidOCR e os modelos upstream PaddleOCR são Apache-2.0.
+- ONNX Runtime evita o runtime PaddlePaddle completo e é apropriado para CPU local/multiplataforma.
+- O pipeline fornece caixas + texto, úteis para associação espacial de labels e valores fiscais.
+
+### Configuração inicial a testar
+
+- PDF: pypdfium2/PDFium
+- render OCR: 250–300 DPI
+- OCR: RapidOCR
+- versão OCR: PP-OCRv6
+- model_type: small
+- engine: onnxruntime
+- idioma lógico: `pt` (modelo PP-OCRv6 é multilíngue unificado)
+- downloads em runtime: proibidos; modelos serão vendorizados/pinados no pacote
+- orientação 180°: habilitar somente se custo/benefício justificar no benchmark
+
+### Variante de maior qualidade
+
+**PP-OCRv6 medium** permanece candidato para:
+- build "quality";
+- segunda tentativa em página de baixa qualidade;
+- ou substituição do `small` se o FiscalOCRBench mostrar ganho relevante em CNPJ/valor/número.
+
+Não empacotar `small` e `medium` simultaneamente na v0.1 sem evidência, para evitar complexidade e bundle desnecessários.
+
+### Backend
+
+**ONNX Runtime** é o baseline por simplicidade e portabilidade.
+
+**OpenVINO** deve ser testado opcionalmente em CPU Intel na FP-004. A documentação PaddleOCR reporta ganhos grandes de CPU com PP-OCRv6/OpenVINO, mas isso precisa ser medido na máquina-alvo antes de adicionar outra dependência ao produto.
+
+### Por que os outros não são primeira escolha
+
+- **Tesseract 5:** excelente baseline, leve e previsível, mas modelos tradicionais tendem a perder em documentos/layouts mais difíceis; manter no benchmark.
+- **PaddleOCR 3.7 direto:** mesma família PP-OCRv6 e excelente opção técnica, porém o pacote atual traz PaddleX e dependências de rede (`requests`, `aiohttp`) no pacote base; RapidOCR oferece caminho mais estreito para o nosso runtime offline.
+- **EasyOCR:** suporta português e Apache-2.0, mas depende de PyTorch/torchvision no Windows e está com release estável mais antiga; footprint de distribuição pior.
+- **docTR:** Apache-2.0 e tecnicamente bom, porém PyTorch/TensorFlow e não há vantagem clara para português fiscal frente ao PP-OCRv6.
+- **Surya 2:** qualidade alta, inclusive português, mas é um modelo 650M/VLM com licença de pesos condicionada para uso comercial maior; incompatível com nossa meta de runtime pequeno e não-VLM.
+- **olmOCR/VLMs:** excluídos por arquitetura e privacidade/determinismo.
+
+### Estado da decisão
+
+- **Pesquisa:** RapidOCR + PP-OCRv6 small + ONNX Runtime é o candidato preferido.
+- **Validação:** pendente de FP-004 / FiscalOCRBench.
+- **Tesseract:** baseline obrigatório.
+- **PP-OCRv6 medium:** challenger de qualidade.
+- **OpenVINO:** challenger de backend/velocidade.
