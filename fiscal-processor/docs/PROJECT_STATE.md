@@ -50,8 +50,14 @@ separado da extração, relatórios sem valores/caminhos, saída exclusiva e che
 Guia operacional em LOCAL_CORPUS.md. Isto habilita a coleta de evidência externa,
 mas não equivale a corpus independente validado.
 
+## Decisão atual — ADR-002
+Usuário autorizou small provisório e testes representativos após pacote Windows:
+PC corporativo sem Python; não possui corpus equivalente no PC pessoal.
+Foto de NFS-e fornecida como referência visual; nenhum dado real versionado.
+FP-004 parcial deixa de bloquear implementação, sem declarar validação concluída.
+
 ## Próxima ação
-FP-004: executar manifesto de layouts independentes autorizados na máquina local
-do responsável, comparar métricas e decidir engine. Ferramenta pronta; corpus
-independente ainda indisponível nesta sessão. Não pedir upload de PDFs empresariais.
-FP-005, CLI de produto e GUI pendentes; Windows/corporativo não validados.
+FP-005: classificador e parsers determinísticos com contexto de seção, fixtures
+sintéticas e revisão explícita. Depois CLI, interface e pacote Windows com modelos
+incluídos. Testes reais no PC corporativo em FP-010/011. Não exigir harness Python
+ou upload de PDFs empresariais para continuar desenvolvimento.

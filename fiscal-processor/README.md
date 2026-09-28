@@ -51,8 +51,8 @@ O save é preparado em arquivo temporário e substitui o XLSX apenas após grava
 ## Próximo gate
 
 FP-004 / FiscalOCRBench implementado e executado com small, medium e Tesseract.
-[Resultados e limitações](docs/RESEARCH-003-ocr-first-run.md). Próximo gate: ampliar
-validação independente e escolha da engine. Corpus espacial: 48/48 verificações
+[Resultados e limitações](docs/RESEARCH-003-ocr-first-run.md). Validação independente e escolha final da engine ocorrerão após pacote Windows
+(ADR-002); small provisório permite avançar nos parsers. Corpus espacial: 48/48 verificações
 por motor, incluindo ausências esperadas ([relatório](docs/RESEARCH-004-ocr-spatial.md)).
 58 testes PASS. Parsers/CLI ainda pendentes.
 
@@ -75,3 +75,5 @@ por motor, incluindo ausências esperadas ([relatório](docs/RESEARCH-004-ocr-sp
 
 Avaliação local com corpus autorizado: [guia](docs/LOCAL_CORPUS.md).
 O avaliador é ferramenta de desenvolvimento; a CLI final permanece pendente.
+
+Decisão atual: [small provisório e teste corporativo após pacote Windows](docs/ADR-002-provisional-ocr.md).

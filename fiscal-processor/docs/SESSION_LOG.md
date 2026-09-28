@@ -135,3 +135,12 @@ execução sequencial, métricas comparáveis); sem alteração no plugin/protoc
   em testes determinísticos; guia LOCAL_CORPUS concentra o próximo procedimento.
 - FP-004 continua parcial: falta executar corpus independente autorizado.
 - Commit: FP-004: add private local corpus evaluation with sanitized reports.
+
+## 2026-09-28 — ajuste de sequência autorizado
+Usuário esclareceu PC corporativo sem Python e ausência de notas equivalentes
+no PC pessoal; aceitou small provisório. ADR-002 remove dependência da validação
+real para iniciar FP-005. Teste representativo transferido para pacote Windows
+com runtime/modelos incluídos. Foto orienta somente estrutura de fixture sintética.
+Mudança documental; não altera código nem evidência dos 69 testes anteriores.
+Retrospectiva: gate de validação deve estar acessível ao usuário no ambiente alvo;
+registrada a sequência corrigida no plano, sem acrescentar novo bloqueio.

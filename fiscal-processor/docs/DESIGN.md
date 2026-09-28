@@ -176,7 +176,9 @@ Regras:
 - hashes/verificação de artefatos no build;
 - nenhum OCR remoto.
 
-A POC não distribuirá duas engines; FP-004 escolhe uma por evidência de acurácia, tamanho, startup e tempo.
+A POC usará small provisoriamente conforme ADR-002. A validação representativa
+de FP-004 ocorrerá após pacote Windows; nenhuma segunda engine será distribuída
+sem evidência que justifique.
 
 ## Parsing
 
@@ -281,3 +283,4 @@ O contrato visual é independente do toolkit:
 - estados inicial, vazio, processando, parcial, sucesso e erro distintos.
 
 A escolha de toolkit ocorrerá após a POC do core. Não usar o frontend para ocultar estados desconhecidos ou erros.
+
