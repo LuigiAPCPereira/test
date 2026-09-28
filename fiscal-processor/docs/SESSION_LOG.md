@@ -124,3 +124,14 @@ execução sequencial, métricas comparáveis); sem alteração no plugin/protoc
   Corpus do mesmo autor não substitui validação independente.
 - Próximo gate FP-004: layouts independentes autorizados; FP-005 pendente.
 - Commit: FP-004: validate spatial OCR corpus across three local engines.
+
+## 2026-09-28 — FP-004 avaliação local por manifesto
+- Base remota 2c05609 confirmada; Draft PR #4 preservado.
+- Avaliador local reutiliza extração por caixas; relatório exporta somente métricas.
+- PDFs corrompidos contam no denominador, próximos documentos continuam.
+- Schema/caminhos contidos e saída exclusiva protegem fontes/evidências.
+- 69 testes PASS, Ruff/mypy/compileall PASS; smoke CLI nativo e Tesseract 48/48 cada, sintéticos.
+- Retrospectiva: privacidade do relatório e preservação de evidência transformadas
+  em testes determinísticos; guia LOCAL_CORPUS concentra o próximo procedimento.
+- FP-004 continua parcial: falta executar corpus independente autorizado.
+- Commit: FP-004: add private local corpus evaluation with sanitized reports.

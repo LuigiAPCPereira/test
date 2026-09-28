@@ -43,8 +43,15 @@ small, medium e Tesseract 48/48 verificações cada; nativo também 48/48.
 Inclui dez ausências esperadas. Relatório RESEARCH-004 e JSON versionados.
 58 testes PASS; Ruff check/format, mypy e compileall PASS.
 
+## FP-004 — avaliador local por manifesto
+Implementado `benchmarks.local_run`: schema restrito, caminhos contidos, gabarito
+separado da extração, relatórios sem valores/caminhos, saída exclusiva e checkpoint.
+69 testes PASS; gates estáticos PASS. Smoke nativo e Tesseract sintéticos 48/48 cada.
+Guia operacional em LOCAL_CORPUS.md. Isto habilita a coleta de evidência externa,
+mas não equivale a corpus independente validado.
+
 ## Próxima ação
-FP-004: validação com layouts independentes autorizados, mantendo documentos
-localmente. Corpus espacial controlado concluído; não repetir como substituto
-de representatividade. Seleção final permanece pendente, small candidato.
-FP-005, CLI e GUI continuam pendentes; Windows/corporativo não validados.
+FP-004: executar manifesto de layouts independentes autorizados na máquina local
+do responsável, comparar métricas e decidir engine. Ferramenta pronta; corpus
+independente ainda indisponível nesta sessão. Não pedir upload de PDFs empresariais.
+FP-005, CLI de produto e GUI pendentes; Windows/corporativo não validados.

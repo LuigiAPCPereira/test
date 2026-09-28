@@ -68,6 +68,44 @@ def tesseract_boxes(engine, image: Path, scale: float, page: int) -> list[TextBo
     return combine_words(boxes)
 
 
+def extract_boxes(pdf: Path, engine_name: str, engine, dpi: int, root: Path) -> list[TextBox]:
+    document = PdfiumAdapter().extract_document(pdf)
+    boxes: list[TextBox] = []
+    if engine_name == "native":
+        for page in document.pages:
+            boxes.extend(
+                TextBox(
+                    b.text,
+                    b.left,
+                    page.height_points - b.top,
+                    b.right,
+                    page.height_points - b.bottom,
+                    page.page_index,
+                )
+                for b in page.blocks
+            )
+    else:
+        from PIL import Image
+
+        for index in range(len(document.pages)):
+            rendered = PdfiumAdapter().render_page(pdf, index, dpi=dpi)
+            raster = Image.frombytes(
+                "RGB",
+                (rendered.width, rendered.height),
+                rendered.pixels,
+                "raw",
+                rendered.mode,
+                rendered.stride,
+            )
+            image_path = root / "input.png"
+            raster.save(image_path)
+            if engine_name == "tesseract":
+                boxes.extend(tesseract_boxes(engine, image_path, dpi / 72, index))
+            else:
+                boxes.extend(rapid_boxes(engine, image_path, dpi / 72, index))
+    return boxes
+
+
 def main():
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument(
@@ -98,38 +136,7 @@ def main():
             write_pdf(pdf, case)
             boxes = []
             started = time.perf_counter()
-            if args.engine == "native":
-                for page in PdfiumAdapter().extract_document(pdf).pages:
-                    boxes.extend(
-                        TextBox(
-                            b.text,
-                            b.left,
-                            page.height_points - b.top,
-                            b.right,
-                            page.height_points - b.bottom,
-                            page.page_index,
-                        )
-                        for b in page.blocks
-                    )
-            else:
-                from PIL import Image
-
-                for index in range(len(case.pages)):
-                    rendered = PdfiumAdapter().render_page(pdf, index, dpi=args.dpi)
-                    raster = Image.frombytes(
-                        "RGB",
-                        (rendered.width, rendered.height),
-                        rendered.pixels,
-                        "raw",
-                        rendered.mode,
-                        rendered.stride,
-                    )
-                    image_path = root / "input.png"
-                    raster.save(image_path)
-                    if args.engine == "tesseract":
-                        boxes.extend(tesseract_boxes(engine, image_path, args.dpi / 72, index))
-                    else:
-                        boxes.extend(rapid_boxes(engine, image_path, args.dpi / 72, index))
+            boxes = extract_boxes(pdf, args.engine, engine, args.dpi, root)
             observed = locate_fields(boxes)
             elapsed = time.perf_counter() - started
             # Answers enter only here, after extraction is complete.

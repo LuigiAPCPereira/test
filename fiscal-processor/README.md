@@ -72,3 +72,6 @@ por motor, incluindo ausências esperadas ([relatório](docs/RESEARCH-004-ocr-sp
 - `docs/PROJECT_STATE.md`
 - `docs/SESSION_LOG.md`
 
+
+Avaliação local com corpus autorizado: [guia](docs/LOCAL_CORPUS.md).
+O avaliador é ferramenta de desenvolvimento; a CLI final permanece pendente.

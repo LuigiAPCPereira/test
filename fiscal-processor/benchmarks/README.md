@@ -110,3 +110,10 @@ O localizador não é parser fiscal de produção. Resultados em RESEARCH-004.
 Lição de reprodução: confirmar PDFium 5.13.0 antes de executar; a versão
 pré-instalada no ambiente pode divergir do requisito. Não adaptar o teste
 para mascarar uma divergência da dependência.
+
+## Avaliar documentos locais autorizados
+
+`benchmarks.local_run` aceita um manifesto externo e produz métricas sem valores
+fiscais. Ver [guia de corpus local](../docs/LOCAL_CORPUS.md). Não commitar PDFs,
+gabaritos ou resultados privados. O suporte a manifesto não certifica corpus
+independente nem substitui a execução do gate pendente.
