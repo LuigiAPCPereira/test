@@ -77,3 +77,12 @@ Avaliação local com corpus autorizado: [guia](docs/LOCAL_CORPUS.md).
 O avaliador é ferramenta de desenvolvimento; a CLI final permanece pendente.
 
 Decisão atual: [small provisório e teste corporativo após pacote Windows](docs/ADR-002-provisional-ocr.md).
+
+## Parser e CI
+
+`fiscal_processor.parsers.parse_invoice` implementa a primeira fatia de FP-005:
+labels explícitos DANFE e seções NFS-e. Recebe linhas em ordem de leitura; não
+remonta tabelas achatadas. 83 testes locais PASS, incluindo PDFium→parser.
+Workflow Fiscal Processor CI verifica Linux/Windows em PR/push e pode ser
+acionado manualmente quando disponível na branch padrão. Build wheel é teste
+de empacotamento Python, não o executável portátil final.

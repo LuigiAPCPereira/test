@@ -56,8 +56,23 @@ PC corporativo sem Python; não possui corpus equivalente no PC pessoal.
 Foto de NFS-e fornecida como referência visual; nenhum dado real versionado.
 FP-004 parcial deixa de bloquear implementação, sem declarar validação concluída.
 
+## FP-005 — primeiro parser determinístico
+`parsers.parse_invoice` recebe linhas em ordem de leitura e metadados; não importa
+PDF/OCR nem filesystem. DANFE com labels explícitos e NFS-e com contexto de
+prestador/tomador. Número/série combinados, data/hora, CNPJ com dígitos verificadores,
+valor monetário estrito; ausência/duplicidade/invalidez gera REVIEW e campo vazio.
+83 testes PASS no Linux, incluindo PDFium real → parser.
+Não suporta ainda tabelas achatadas, remontagem espacial, OCR integrado ou layouts
+municipais em geral. Foto de referência não foi processada pela engine.
+
+## CI
+Workflow `.github/workflows/fiscal-processor-ci.yml`: PR/push/manual, Python 3.12,
+Ubuntu 24.04 e Windows 2022; Ruff, mypy, pytest, compileall e build wheel.
+Actions fixadas em SHA, permissão contents:read, sem secrets/deploy/documentos reais.
+Execução remota ainda deve ser consultada no commit publicado; configuração não
+é prova de CI verde. Wheel não é pacote portátil Windows.
+
 ## Próxima ação
-FP-005: classificador e parsers determinísticos com contexto de seção, fixtures
-sintéticas e revisão explícita. Depois CLI, interface e pacote Windows com modelos
-incluídos. Testes reais no PC corporativo em FP-010/011. Não exigir harness Python
-ou upload de PDFs empresariais para continuar desenvolvimento.
+FP-005: integrar caixas/ordem de leitura ao parser e adapter OCR small local;
+depois FP-007 (processamento PDF→Excel e CLI). Consultar CI e corrigir falhas reais.
+Validação corporativa mantém sequência ADR-002, sem exigir Python do usuário.

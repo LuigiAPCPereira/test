@@ -67,7 +67,12 @@ def test_invalid_manifest_fails_before_processing(tmp_path, change):
         if change == "traversal":
             data["cases"][0]["pdf"] = "../outside.pdf"
         else:
-            (root / "link.pdf").symlink_to(outside)
+            try:
+                (root / "link.pdf").symlink_to(outside)
+            except OSError as exc:
+                if getattr(exc, "winerror", None) == 1314:
+                    pytest.skip("Windows runner lacks symlink privilege")
+                raise
             data["cases"][0]["pdf"] = "link.pdf"
     elif change == "missing_field":
         del data["cases"][0]["expected"]["amount"]
@@ -107,7 +112,7 @@ def test_cli_setup_failure_is_sanitized(tmp_path):
         ],
         capture_output=True,
         text=True,
-        env={**os.environ, "PYTHONPATH": "src:."},
+        env={**os.environ, "PYTHONPATH": os.pathsep.join(("src", "."))},
         cwd=Path(__file__).resolve().parents[1],
         check=False,
     )

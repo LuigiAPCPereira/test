@@ -144,3 +144,13 @@ com runtime/modelos incluídos. Foto orienta somente estrutura de fixture sinté
 Mudança documental; não altera código nem evidência dos 69 testes anteriores.
 Retrospectiva: gate de validação deve estar acessível ao usuário no ambiente alvo;
 registrada a sequência corrigida no plano, sem acrescentar novo bloqueio.
+
+## 2026-09-28 — FP-005 parser e CI
+- Base ed6e8af; parser puro labelled-v1 com contexto de partes e revisão explícita.
+- 14 testes novos; 83 testes locais PASS, Ruff/mypy/compileall PASS.
+- Workflow Linux/Windows com permissions mínimas e actions fixadas por SHA.
+- Teste subprocesso usa os.pathsep; symlink só é skip se Windows negar privilégio.
+- Limite: recebe linhas ordenadas, não remonta tabelas; OCR não integrado.
+- Próximo: consultar CI publicado e integrar evidências PDF/OCR ao parser.
+- Retrospectiva: total líquido/base não devem substituir total fiscal; regressão
+  instalada em teste determinístico, fixture inteiramente sintética.
