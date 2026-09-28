@@ -13,6 +13,7 @@ authors = [
   { name = "Fiscal Processor contributors" },
 ]
 dependencies = [
+  "openpyxl==3.1.5",
   "pypdfium2==5.13.0",
 ]
 
@@ -42,3 +43,7 @@ python_version = "3.11"
 strict = true
 packages = ["fiscal_processor"]
 mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["openpyxl", "openpyxl.*"]
+ignore_missing_imports = true
