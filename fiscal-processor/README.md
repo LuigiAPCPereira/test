@@ -26,17 +26,21 @@ A arquitetura v0.1 estabelece que documentos e dados fiscais permanecem na máqu
 
 🟢 Arquitetura e pesquisa inicial documentadas.  
 🟢 Núcleo de domínio Python implementado e testado (FP-002).  
-🟡 Adapter PDFium ainda não implementado (FP-003).  
+🟡 Adapter PDFium implementado e parcialmente validado (FP-003).  
+⚪ Integração real com pypdfium2 ainda precisa de smoke em ambiente com o wheel instalado.  
 ⚪ Runtime Windows sem admin ainda não validado.
 
-Próxima tarefa: `FP-003` em `docs/TASKLIST.md`.
+## Gates observados
 
-## Gates observados em FP-002
-
-- `pytest`: 16 PASS
+- suíte local atual: 24 PASS
 - `compileall`: PASS
 - `ruff`: não revalidado neste ambiente
 - `mypy`: não revalidado neste ambiente
+- integração real pypdfium2: pendente
+
+## Próximo gate
+
+Revalidar FP-003 com `pypdfium2==5.13.0` instalado e só então iniciar o benchmark OCR FP-004.
 
 ## Documentação
 
