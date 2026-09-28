@@ -4,7 +4,7 @@
 - Repositório: LuigiAPCPereira/test
 - Branch: feat/fiscal-processor-local-v0.1; Draft PR #4; sem merge.
 - HEAD inicial recuperado: 05d247e470931a8c0a38bb030c0fa4a19d3822e2.
-- Commits publicados: 1de8841 (FP-003), 6b7605f (FP-006).
+- Commits publicados: 1de8841 (FP-003), 6b7605f (FP-006), f08cef7 (FP-004 inicial).
 - Snapshot dos 32 arquivos do PR recuperado pelo plugin GitHub. Clone indisponível por autenticação; não há alegação de checkout Git local completo.
 - Escopo: Fiscal Processor local-only, separado do PR #3/M365.
 
@@ -37,8 +37,14 @@ Tesseract 459/480 (60 casos). Comparação comum/limites em RESEARCH-003.
 52 testes PASS + ruff check/format/mypy/compileall PASS no conjunto final.
 Small permanece candidato, sem seleção final nem runtime OCR do produto.
 
+## FP-004 — ampliação espacial
+Corpus espacial executado: seis documentos/sete páginas por motor a 200 DPI;
+small, medium e Tesseract 48/48 verificações cada; nativo também 48/48.
+Inclui dez ausências esperadas. Relatório RESEARCH-004 e JSON versionados.
+58 testes PASS; Ruff check/format, mypy e compileall PASS.
+
 ## Próxima ação
-FP-004: ampliar corpus espacial/negativos e repetir validação independente para
-seleção final. Não há alegação de bloqueio de acesso aos modelos; o gate pendente
-é a evidência insuficiente para qualidade fiscal representativa.
-FP-005 depende da escolha por evidência em FP-004; GUI/build aguardam core.
+FP-004: validação com layouts independentes autorizados, mantendo documentos
+localmente. Corpus espacial controlado concluído; não repetir como substituto
+de representatividade. Seleção final permanece pendente, small candidato.
+FP-005, CLI e GUI continuam pendentes; Windows/corporativo não validados.

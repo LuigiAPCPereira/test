@@ -85,3 +85,28 @@ de hashes está em engines.py e prepare_models.py. Não commitar os binários.
 No Tesseract, startup_seconds mede a sondagem `--version`; cada amostra cria um
 processo e carrega o modelo, custo incluído em seconds. RapidOCR mantém engine
 carregada. Não comparar startup_seconds como se fossem o mesmo cold start.
+
+## Corpus espacial v1
+
+`spatial_corpus.py` gera seis documentos (sete páginas) com rótulos e valores
+em caixas distintas: colunas trocadas, acentos, duas páginas, total ausente,
+total duplicado e comprovante negativo. São 48 verificações, incluindo dez
+ausências esperadas; não são 48 valores presentes.
+
+```sh
+PYTHONPATH=src:. python -m benchmarks.spatial_run --engine native --output native.json
+PYTHONPATH=src:. python -m benchmarks.spatial_run --engine small --models /caminho/models --output spatial-small.json
+PYTHONPATH=src:. python -m benchmarks.spatial_run --engine medium --models /caminho/models --output spatial-medium.json
+PYTHONPATH=src:. python -m benchmarks.spatial_run --engine tesseract --models /caminho/models --output spatial-tesseract.json
+```
+
+Rodar sequencialmente. Default: 200 DPI. O localizador recebe somente texto e
+caixas; gabarito entra depois da extração. Coordenadas são normalizadas para
+pontos PDF; palavras TSV do Tesseract são agrupadas sem atravessar colunas.
+O split development/evaluation é controlado pelo mesmo autor, portanto não
+é validação externa independente. `review_oracle` continua sendo oráculo.
+O localizador não é parser fiscal de produção. Resultados em RESEARCH-004.
+
+Lição de reprodução: confirmar PDFium 5.13.0 antes de executar; a versão
+pré-instalada no ambiente pode divergir do requisito. Não adaptar o teste
+para mascarar uma divergência da dependência.

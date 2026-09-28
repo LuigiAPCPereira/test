@@ -112,3 +112,15 @@ Revisão esclareceu que startup Tesseract é sondagem de versão, diferente do
 carregamento residente RapidOCR; latência por página Tesseract inclui subprocesso.
 Curator Pass: lições específicas registradas no README do benchmark (checkpoint,
 execução sequencial, métricas comparáveis); sem alteração no plugin/protocolo.
+
+## 2026-09-28 — FP-004 corpus espacial
+- HEAD f08cef7 recuperado; branch/PR Draft preservados.
+- Seis documentos/sete páginas sintéticas; small, medium, Tesseract e nativo
+  48/48 verificações cada, das quais dez são ausências esperadas.
+- Extração por caixas/rótulos sem gabarito; negativos, ambiguidade e acentos.
+- TSV Tesseract configurado explicitamente para pasta isolada de modelos.
+- 58 testes e gates Ruff/mypy/compileall PASS; relatório RESEARCH-004.
+- Curator: versões preinstaladas podem divergir; confirmar pin PDFium.
+  Corpus do mesmo autor não substitui validação independente.
+- Próximo gate FP-004: layouts independentes autorizados; FP-005 pendente.
+- Commit: FP-004: validate spatial OCR corpus across three local engines.

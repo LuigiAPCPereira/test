@@ -52,7 +52,9 @@ O save é preparado em arquivo temporário e substitui o XLSX apenas após grava
 
 FP-004 / FiscalOCRBench implementado e executado com small, medium e Tesseract.
 [Resultados e limitações](docs/RESEARCH-003-ocr-first-run.md). Próximo gate: ampliar
-corpus espacial e validar escolha da engine. Parsers/CLI ainda pendentes.
+validação independente e escolha da engine. Corpus espacial: 48/48 verificações
+por motor, incluindo ausências esperadas ([relatório](docs/RESEARCH-004-ocr-spatial.md)).
+58 testes PASS. Parsers/CLI ainda pendentes.
 
 ## Documentação
 
