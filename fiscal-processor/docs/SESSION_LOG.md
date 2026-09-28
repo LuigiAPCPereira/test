@@ -47,5 +47,22 @@ Criar produto separado em Python, local-only, com saída Excel e distribuição 
 ### Evidência Git
 - Commit funcional: `ab95f45045f7f4e6f813c5100e7914931350a4e5`.
 
-### Próximo bloco
-- FP-003: adapter pypdfium2 para texto/posições/renderização, ainda sem OCR.
+## 2026-09-27 — FP-003 adapter PDFium
+
+### Implementado
+- Dependência `pypdfium2==5.13.0` pinada.
+- Adapter local para abrir PDF, extrair texto Unicode, obter text objects/bounding boxes e rasterizar página por DPI.
+- Buffer rasterizado é copiado antes de fechar o bitmap PDFium.
+- OCR e parsing fiscal permanecem fora deste boundary.
+- Teste de integração sintético preparado com PDF mínimo gerado em memória.
+- Doubles locais adicionados para validar lifecycle, bounds, render e erros sem depender do wheel.
+
+### Validação observada
+- suíte local: 24 testes, PASS;
+- `compileall`: PASS;
+- instalação do wheel no container: indisponível por resolução de rede;
+- GitHub Actions: runs criados, mas falharam antes de alocar runner/steps; logs do job não estavam disponíveis;
+- workflow temporário removido para não tratar infraestrutura indisponível como resultado do código.
+
+### Estado
+FP-003 permanece **implementada / parcialmente validada** até smoke real com `pypdfium2` instalado.
