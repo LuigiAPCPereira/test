@@ -5,10 +5,10 @@ That boundary prevents reprocessing from silently taking ownership of OS, validi
 or observations.
 """
 
+import re
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
-import re
 
 from .status import DocumentType, ExtractionMode, ProcessingStatus, QualityFlag
 

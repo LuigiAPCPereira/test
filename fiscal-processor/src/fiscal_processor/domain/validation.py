@@ -1,8 +1,8 @@
 """Pure deterministic validators and normalizers for Brazilian fiscal fields."""
 
+import re
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
-import re
 
 _DIGITS_RE = re.compile(r"\D+")
 
@@ -66,7 +66,6 @@ def parse_brl_money(value: str) -> Decimal:
     if not text:
         raise DomainValidationError("money value must not be blank")
 
-    # Brazilian notation: dots are thousands separators and comma is decimal separator.
     if "," in text:
         normalized = text.replace(".", "").replace(",", ".")
     else:
