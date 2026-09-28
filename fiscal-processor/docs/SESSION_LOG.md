@@ -24,3 +24,28 @@ Criar produto separado em Python, local-only, com saída Excel e distribuição 
 - Branch criada a partir de `main`: `feat/fiscal-processor-local-v0.1`.
 - Protótipo M365 permanece isolado no Draft PR #3.
 - Próxima tarefa: FP-002.
+
+## 2026-09-27 — FP-002 bootstrap Python
+
+### Implementado
+- `pyproject.toml` com pacote src-layout e dependências dev separadas.
+- Domínio sem dependências externas.
+- Enums explícitos: `DocumentType`, `ExtractionMode`, `ProcessingStatus`, `QualityFlag`.
+- `FiscalExtraction` imutável para dados automáticos.
+- `ManualFields` separado para OS, validade e observações.
+- Validador de CNPJ com dígitos verificadores.
+- Parsers determinísticos de data e BRL.
+- Política de fixtures sintéticas/anonimizadas.
+- Guia de gates locais em `docs/DEVELOPMENT.md`.
+
+### Validação
+- `pytest`: 16 testes, PASS.
+- `compileall`: PASS.
+- `ruff`: não executado; módulo ausente no ambiente.
+- `mypy`: não executado; módulo ausente no ambiente.
+
+### Evidência Git
+- Commit funcional: `ab95f45045f7f4e6f813c5100e7914931350a4e5`.
+
+### Próximo bloco
+- FP-003: adapter pypdfium2 para texto/posições/renderização, ainda sem OCR.
