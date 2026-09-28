@@ -3,9 +3,9 @@
 from .pdfium import (
     PdfAdapterError,
     PdfDocumentContent,
+    PdfiumAdapter,
     PdfPageContent,
     PdfTextBlock,
-    PdfiumAdapter,
     RenderedPage,
 )
 

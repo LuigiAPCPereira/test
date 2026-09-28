@@ -45,5 +45,5 @@ packages = ["fiscal_processor"]
 mypy_path = "src"
 
 [[tool.mypy.overrides]]
-module = ["openpyxl", "openpyxl.*"]
+module = ["openpyxl", "openpyxl.*", "pypdfium2", "pypdfium2.*"]
 ignore_missing_imports = true

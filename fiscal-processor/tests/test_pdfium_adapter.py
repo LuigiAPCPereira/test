@@ -20,7 +20,11 @@ def _synthetic_pdf(text: str = "NFE TESTE 004241885") -> bytes:
             b"/Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>"
         ),
         b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-        b"<< /Length " + str(len(stream)).encode("ascii") + b" >>\nstream\n" + stream + b"endstream",
+        b"<< /Length "
+        + str(len(stream)).encode("ascii")
+        + b" >>\nstream\n"
+        + stream
+        + b"endstream",
     ]
 
     data = bytearray(b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
@@ -94,3 +98,54 @@ def test_wraps_corrupt_pdf_open_error(tmp_path: Path) -> None:
 
     with pytest.raises(PdfAdapterError, match="unable to open PDF"):
         adapter.extract_document(path)
+
+
+@pytest.mark.parametrize("dpi", [72, 150, 200, 250, 300])
+def test_real_render_dimensions_and_pixels_survive_close(tmp_path: Path, dpi: int) -> None:
+    import math
+
+    path = _write_pdf(tmp_path, _synthetic_pdf())
+    adapter = PdfiumAdapter()
+    rendered = adapter.render_page(path, 0, dpi=dpi)
+    assert rendered.width == math.ceil(612 * (dpi / 72))
+    assert rendered.height == math.ceil(792 * (dpi / 72))
+    assert len(rendered.pixels) == rendered.stride * rendered.height
+    assert min(rendered.pixels) < 255  # Actual glyphs, not just a white buffer.
+    original = rendered.pixels
+    adapter.render_page(path, 0, dpi=72)
+    path.unlink()
+    assert rendered.pixels == original
+
+
+def test_blank_page_has_no_text_or_blocks(tmp_path: Path) -> None:
+    path = _write_pdf(tmp_path, _synthetic_pdf(""))
+    page = PdfiumAdapter().extract_document(path).pages[0]
+    assert page.text == ""
+    assert page.blocks == ()
+
+
+def test_render_limit_rejects_before_allocation(tmp_path: Path) -> None:
+    path = _write_pdf(tmp_path, _synthetic_pdf())
+    with pytest.raises(PdfAdapterError, match="pixel limit"):
+        PdfiumAdapter(max_render_pixels=100).render_page(path, 0)
+
+
+def test_page_limit_with_real_multipage_pdf(tmp_path: Path) -> None:
+    import pypdfium2
+
+    path = tmp_path / "pages.pdf"
+    with pypdfium2.PdfDocument.new() as document:
+        for _ in range(2):
+            document.new_page(72, 72).close()
+        document.save(path)
+    adapter = PdfiumAdapter(max_pages=1)
+    with pytest.raises(PdfAdapterError, match="page limit"):
+        adapter.extract_document(path)
+    with pytest.raises(PdfAdapterError, match="page limit"):
+        adapter.render_page(path, 0)
+
+
+@pytest.mark.parametrize("dpi", [-1, 0, 601, float("inf"), float("nan"), 72.5, True])
+def test_invalid_dpi_never_opens_input(tmp_path: Path, dpi: int) -> None:
+    with pytest.raises(ValueError, match="dpi"):
+        PdfiumAdapter().render_page(tmp_path / "missing.pdf", 0, dpi=dpi)

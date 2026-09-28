@@ -70,3 +70,16 @@ Resultado: **5/5 PASS**.
 
 ### Evidência Git
 - `d2e829987c407b48ef28ba5f45ff30389e283c36`
+
+
+## 2026-09-28 — FP-003 integração real e limites
+- Base observada: 05d247e470931a8c0a38bb030c0fa4a19d3822e2, PR #4 Draft.
+- Wheel pypdfium2 5.13.0 instalado; baseline 29 testes PASS.
+- Acrescentados testes reais de DPI, página vazia, limites e buffer após close.
+- Achado: ceil(points * (dpi / 72)) pode diferir um pixel de ceil(points * dpi / 72).
+  Preflight e testes corrigidos para corresponder ao PDFium real.
+- Limites configuráveis evitam rasterizações acima do orçamento e documentos extensos.
+- 44 testes PASS; ruff/mypy/compileall PASS após correção das pendências de baseline.
+- Protocolo: usuário informou COMPLETE; índice Notion STAGING está desatualizado.
+- Próxima tarefa FP-004; runtime Windows e memória nativa de longa duração não validados.
+- Commit: identificado no histórico pela mensagem FP-003: validate real PDFium integration and bound rendering.

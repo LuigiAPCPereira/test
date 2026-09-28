@@ -1,69 +1,33 @@
-# PROJECT_STATE — 2026-09-27
+# PROJECT_STATE — 2026-09-28 UTC
 
-## Ref observada
+## Ref observada e escopo
+- Repositório: LuigiAPCPereira/test
+- Branch: feat/fiscal-processor-local-v0.1; Draft PR #4; sem merge.
+- HEAD recuperado: 05d247e470931a8c0a38bb030c0fa4a19d3822e2.
+- Snapshot dos 32 arquivos do PR recuperado pelo plugin GitHub. Clone indisponível por autenticação; não há alegação de checkout Git local completo.
+- Escopo: Fiscal Processor local-only, separado do PR #3/M365.
 
-- Repositório: `LuigiAPCPereira/test`
-- Branch ativa deste produto: `feat/fiscal-processor-local-v0.1`
-- Base: `main`
-- Draft PR: #4 — `Bootstrap Fiscal Processor local-only architecture`
-- Protótipo anterior: Draft PR #3 em `feat/nf-automation-m365-v0.3`; não é dependência e não foi mergeado.
+## Fontes
+AGENTS.md do subprojeto lido na ref exata; AGENTS.md raiz retornou 404.
+Protocolo 2.2 e DNAs dos anexos consultados. Índice Notion retornou STAGING,
+mas o usuário corrigiu explicitamente em 2026-09-27: estado atual COMPLETE;
+Notion desatualizado. COMPLETE é informação do usuário; equivalência integral
+entre cópias não foi certificada nesta sessão. Não se trata de nova adoção.
 
-## Fontes de processo
+## FP-003 — validada no Linux
+pypdfium2 5.13.0 instalado e executado com Python 3.12 Linux x86_64.
+44 testes PASS, incluindo integração real de texto, caixas, render em cinco
+DPIs, página sem texto, PDF inválido, buffer independente após close e limites.
+Limites configuráveis: 500 páginas e 40 milhões de pixels; DPI inteiro 1–600.
+Dimensionamento usa a mesma ordem de operações float do PDFium: ceil(points * scale).
+Ruff check/format, mypy src e compileall PASS. FP-002 também teve gates revalidados.
+FP-006 mantém cinco testes reais PASS.
 
-- `DOCUMENTATION_AND_CONTINUITY.md` versão 2.2 foi consultado a partir da cópia disponível no Project.
-- `ENGINEERING_DNA.md` e `FRONTEND_DNA.md` disponíveis no Project foram consultados.
-- A publicação editorial central no Notion não foi revalidada nesta execução; não afirmar sincronização dessa cópia com uma release Notion atual.
-- `fiscal-processor/AGENTS.md` é o entrypoint local do subprojeto.
+## Limites de evidência
+Não há prova de ausência de todos os vazamentos nativos; limites de pixels não
+são sandbox nem timeout de PDF malicioso. Windows, máquina corporativa,
+OCR e desempenho do produto completo não validados.
 
-## Trilha PDF atual
-
-**FP-003 — Adapter PDFium para texto + render**
-
-Estado: **IMPLEMENTADA / VALIDADA PARCIALMENTE**.
-
-Evidências:
-- `pypdfium2==5.13.0` fixado no contrato do projeto;
-- adapter isolado em `adapters/pdf/pdfium.py`;
-- extração de texto e bounding boxes implementada;
-- rasterização por DPI para buffer próprio em memória;
-- testes unitários com doubles validam lifecycle, buffer, bounds, normalização e falhas;
-- suíte local observada antes de FP-006: **24 PASS**;
-- `compileall`: **PASS**;
-- integração real com o wheel `pypdfium2`: **NÃO REVALIDADA** nesta sessão;
-- tentativa de GitHub Actions gerou runs sem runner/steps; workflow removido.
-
-## Trilha Excel paralela
-
-**FP-006 — Adapter Excel idempotente**
-
-Estado: **CONCLUÍDA / VALIDADA**.
-
-Evidências:
-- `openpyxl==3.1.5` pinado;
-- workbook controlado `Controle_Notas_Fiscais.xlsx` com sheet `Notas Fiscais`;
-- colunas técnicas ocultas: `_sha256`, `_extraction_mode`, `_parser_id`, `_processed_at`;
-- SHA-256 é chave de upsert: mesma NF atualiza a mesma linha;
-- `Número da OS`, `Validade` e `Observações` não entram no writer automático;
-- save grava em temporário no mesmo diretório e usa `os.replace`;
-- falha de replace preserva o arquivo anterior e limpa o temporário;
-- workbook com contrato de cabeçalho desconhecido é recusado em vez de ser reescrito;
-- **5/5 testes reais com openpyxl 3.1.5: PASS**;
-- `compileall`: **PASS**.
-
-Commit:
-- `d2e829987c407b48ef28ba5f45ff30389e283c36`
-
-## Desconhecidos relevantes
-
-- Qualidade real do pypdfium2 em PDF sintético/real executado com a biblioteca instalada.
-- Qual OCR vence o corpus fiscal.
-- Se o executável não assinado passa pelas políticas da máquina corporativa.
-- Toolkit visual final.
-- Baseline real de performance.
-- Necessidade futura de code signing.
-
-## Próxima ação segura
-
-Revalidar **FP-003** num ambiente com `pypdfium2==5.13.0` instalável, executando o smoke sintético real de texto + render.
-
-FP-004 permanece bloqueada por esse gate. FP-006 não está bloqueada e já foi validada de forma independente.
+## Próxima ação
+FP-004: implementar corpus/benchmark OCR local e comparar engines por campos.
+FP-005 depende da escolha por evidência em FP-004; GUI/build aguardam core.

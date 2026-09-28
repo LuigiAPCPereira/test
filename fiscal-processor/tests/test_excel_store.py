@@ -43,9 +43,7 @@ def extraction(
         issuer_cnpj="46.395.687/0004-55",
         recipient_name="EMPRESA TOMADORA LTDA",
         amount=Decimal(amount),
-        quality_flags=()
-        if status is ProcessingStatus.OK
-        else (QualityFlag.MISSING_SERIES,),
+        quality_flags=() if status is ProcessingStatus.OK else (QualityFlag.MISSING_SERIES,),
         parser_id="nfe-danfe-v1",
     )
 

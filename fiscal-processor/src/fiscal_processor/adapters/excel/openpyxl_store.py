@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import os
 import tempfile
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
@@ -138,8 +139,7 @@ class OpenpyxlInvoiceStore:
 
     def _validate_headers(self, worksheet: Worksheet) -> None:
         observed = tuple(
-            worksheet.cell(1, column).value
-            for column in range(1, len(self.HEADERS) + 1)
+            worksheet.cell(1, column).value for column in range(1, len(self.HEADERS) + 1)
         )
         if observed != self.HEADERS:
             raise WorkbookContractError("workbook headers do not match the controlled contract")

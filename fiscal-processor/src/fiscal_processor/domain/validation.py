@@ -42,10 +42,7 @@ def validate_cnpj(value: str) -> str:
 
 def format_cnpj(value: str) -> str:
     digits = validate_cnpj(value)
-    return (
-        f"{digits[0:2]}.{digits[2:5]}.{digits[5:8]}/"
-        f"{digits[8:12]}-{digits[12:14]}"
-    )
+    return f"{digits[0:2]}.{digits[2:5]}.{digits[5:8]}/{digits[8:12]}-{digits[12:14]}"
 
 
 def parse_br_date(value: str) -> date:
@@ -66,10 +63,7 @@ def parse_brl_money(value: str) -> Decimal:
     if not text:
         raise DomainValidationError("money value must not be blank")
 
-    if "," in text:
-        normalized = text.replace(".", "").replace(",", ".")
-    else:
-        normalized = text
+    normalized = text.replace(".", "").replace(",", ".") if "," in text else text
 
     try:
         amount = Decimal(normalized)
