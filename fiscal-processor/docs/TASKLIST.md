@@ -3,7 +3,7 @@
 | ID | Marco | Resultado | Estado | Depende de | Aceite/evidência |
 | --- | --- | --- | --- | --- | --- |
 | FP-001 | M0 | Pesquisa local-only + arquitetura inicial | validada documentalmente | nenhuma | PRODUCT/PRD/DESIGN/FRONTEND/RESEARCH/ADR-001 versionados; fontes técnicas verificadas |
-| FP-002 | M1 | Bootstrap Python e contratos de domínio | pendente | FP-001 | pacote importável, modelos/estados tipados, gates locais definidos |
+| FP-002 | M1 | Bootstrap Python e contratos de domínio | validada parcialmente | FP-001 | pacote `src/` criado; modelos/estados tipados; validações CNPJ/data/valor; 16 testes unitários PASS; `compileall` PASS; ruff/mypy definidos mas não revalidados neste ambiente |
 | FP-003 | M1 | Adapter PDFium para texto + render | pendente | FP-002 | fixtures textuais extraídas; página rasterizada sem ferramenta externa |
 | FP-004 | M2 | Benchmark OCR local | pendente | FP-003 | benchmark fiscal próprio inspirado no olmOCR-bench; comparar Tesseract e RapidOCR/ONNX; PaddleOCR como baseline técnico; relatório de exatidão/latência/tamanho e uma engine escolhida |
 | FP-005 | M2 | Classificador + parsers NF-e/NFS-e | pendente | FP-003,FP-004 | NF-e e NFS-e sintéticas retornam campos/flags esperados; ausências não são inventadas |
