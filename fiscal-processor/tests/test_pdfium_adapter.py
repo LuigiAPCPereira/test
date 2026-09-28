@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("pypdfium2")
+
 from fiscal_processor.adapters.pdf import PdfAdapterError, PdfiumAdapter
 
 
