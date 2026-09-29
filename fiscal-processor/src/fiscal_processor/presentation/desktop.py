@@ -210,12 +210,17 @@ class Desktop:
             self.stop.configure(state="disabled")
             for widget in (self.choose, self.process, self.reprocess_check):
                 widget.configure(state="normal")
+            summary = summarize(event.batch) if event.batch is not None else None
             self.status.set(
-                summarize(event.batch).message
-                if event.batch is not None
+                summary.message
+                if summary is not None
                 else "Não foi possível processar a pasta. Verifique o acesso e a instalação local."
             )
-            self.current.set("Selecione um item para ver orientações.")
+            self.current.set(
+                "Selecione um item para ver orientações."
+                if self.table.get_children()
+                else "Não há itens concluídos para detalhar."
+            )
             if self.output is not None and self.output.is_file():
                 self.open_button.configure(state="normal")
             self.process.focus_set()

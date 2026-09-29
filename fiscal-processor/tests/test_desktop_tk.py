@@ -92,6 +92,7 @@ def test_empty_folder_is_not_error_or_fake_completion(desktop, tmp_path, monkeyp
     drain_until_complete(desktop)
     assert "Nenhum PDF" in desktop.status.get()
     assert not desktop.table.get_children()
+    assert desktop.current.get() == "Não há itens concluídos para detalhar."
     assert str(desktop.open_button["state"]) == "disabled"
 
 

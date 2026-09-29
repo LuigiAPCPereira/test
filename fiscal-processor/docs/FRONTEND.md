@@ -156,3 +156,27 @@ neste ambiente. Não repetir a instalação aqui como se fosse apenas pacote aus
 Validação atual: 128 PASS e 6 skips (cinco Tk, um OCR). Teste negativo com
 FISCAL_REQUIRE_DISPLAY=1 falhou no setup com a mensagem esperada de display
 obrigatório indisponível. Gate preparado não equivale a interface validada.
+
+
+## Harness de QA visual sintético — 2026-09-29
+`tools/visual_qa.py` prepara estados determinísticos sem PDFs empresariais, sem OCR
+e sem rede: initial, selected, processing, empty, success, partial, error,
+cancelled e long. A janela identifica explicitamente `QA VISUAL SINTÉTICO`;
+o arquivo XLSX criado para os estados de sucesso é temporário e contém somente
+dados sintéticos.
+
+Após instalar o ambiente de desenvolvimento, executar por exemplo:
+
+```sh
+python tools/visual_qa.py partial
+python tools/visual_qa.py long --scale 2.0 --geometry 760x540
+```
+
+O harness serve para inspecionar hierarquia, foco visível, Tab, nomes longos,
+scroll, mensagens, 200% de escala e os estados em um display real. Ele não entra
+no wheel/runtime do produto e não substitui os testes Tk nem a inspeção renderizada.
+FP-008 permanece parcial até essa evidência existir.
+
+Correção associada: término sem nenhuma linha agora mostra
+`Não há itens concluídos para detalhar.`, em vez de orientar a selecionar um
+item inexistente. O teste Tk de pasta vazia protege esse comportamento.

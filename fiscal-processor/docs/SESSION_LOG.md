@@ -210,3 +210,16 @@ registrada a sequência corrigida no plano, sem acrescentar novo bloqueio.
 - Retrospectiva: skip de display podia ocultar falta de validação na CI; guardrail
   instalado via FISCAL_REQUIRE_DISPLAY e comandos por SO. Não repetir tentativas
   neste host; próxima execução requer ambiente gráfico/runner disponível.
+
+
+## 2026-09-29 — preparação reproduzível da inspeção FP-008
+- HEAD recuperado: 37d7795, Draft PR #4; nenhuma alteração concorrente observada.
+- Run 36562313169: jobs Linux/Windows falharam sem passos/logs, portanto nenhum
+  teste gráfico foi executado; bloqueio externo da conta permanece.
+- Criado `tools/visual_qa.py` fora do pacote para estados sintéticos, nomes
+  longos, viewport mínimo e escala 200%, sem dados fiscais reais.
+- Corrigida orientação de lotes sem linhas: não pede mais seleção inexistente;
+  teste Tk de pasta vazia estendido.
+- Validação desta fatia: sintaxe do harness conferida isoladamente. Gates do
+  repositório e renderização continuam pendentes; FP-008 não foi promovida.
+- Próximo: executar harness + suíte Tk em display real e registrar evidência.

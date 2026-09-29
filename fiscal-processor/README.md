@@ -188,3 +188,19 @@ Sem essa variável, ambiente sem display marca os testes Tk como skip. Com ela,
 a ausência de display é erro. Resultado local mais recente: 128 PASS + 6 skips
 (cinco Tk e um OCR). A CI hospedada continua bloqueada por cobrança; os cenários
 gráficos foram preparados, mas ainda não executados. Inspeção visual segue pendente.
+
+
+### QA visual sintético da interface
+
+Para inspecionar a janela sem documentos reais, o repositório inclui um harness
+de desenvolvimento fora do pacote do produto:
+
+```sh
+python tools/visual_qa.py partial
+python tools/visual_qa.py long --scale 2.0 --geometry 760x540
+```
+
+Estados disponíveis: `initial`, `selected`, `processing`, `empty`,
+`success`, `partial`, `error`, `cancelled` e `long`. A janela marca
+explicitamente que os dados são sintéticos. Use um display real; executar o
+harness não aprova FP-008 por si só.

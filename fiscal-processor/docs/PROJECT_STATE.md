@@ -142,9 +142,25 @@ Tentativa apt falhou por permissões; Xvfb extraído isoladamente também falhou
 por não conseguir criar sockets locais. Não repetir provisionamento neste host.
 Não houve janela renderizada ou CI executada; FP-008 continua parcial.
 
+## FP-008 — harness de QA visual sintético
+Adicionado `tools/visual_qa.py`, fora do wheel/runtime, para abrir estados
+determinísticos initial/selected/processing/empty/success/partial/error/cancelled/long.
+Aceita escala Tk e geometria para inspeção a 200% e viewport mínimo. Todos os
+dados são sintéticos; estados com planilha criam XLSX temporário local. Isto
+reduz a dependência de documentos reais para revisão visual, mas não cria
+evidência renderizada neste ambiente.
+
+Correção de UX associada: lotes sem nenhuma linha concluída não orientam mais
+a selecionar um item inexistente; mostram `Não há itens concluídos para detalhar.`.
+O teste Tk de pasta vazia foi estendido para proteger a mensagem. O novo script
+teve sintaxe Python conferida isoladamente antes do commit; suíte/ruff/mypy e
+renderização da revisão ainda precisam de ambiente capaz de executar a árvore.
+
 ## Próxima ação
-FP-008: renderizar e inspecionar janela real com display; validar teclado/foco,
-escala, nomes longos, estados e cancelamento. Confirmar escolha provisória após
-evidência visual/acessível, antes de FP-009 pacote Windows. CLI OCR end-to-end
-permanece pendente de ambiente com modelos. CI segue bloqueado por cobrança;
-não repetir runs manuais. Smoke corporativo somente após pacote sem Python.
+FP-008: em display real, executar `python tools/visual_qa.py partial` e
+`python tools/visual_qa.py long --scale 2.0 --geometry 760x540`; validar
+teclado/foco, escala, nomes longos, estados, scroll e cancelamento, além da suíte
+Tk obrigatória. Confirmar escolha provisória após evidência visual/acessível,
+antes de FP-009 pacote Windows. CLI OCR end-to-end permanece pendente de ambiente
+com modelos. CI segue bloqueado antes das etapas; não repetir runs manuais até
+resolver a conta. Smoke corporativo somente após pacote sem Python.
