@@ -117,7 +117,6 @@ def test_invalid_coordinates_are_rejected(coordinates):
         TextSpan("text", *coordinates)
 
 
-
 def test_amount_may_be_in_same_row_to_the_right_of_its_label():
     result = parse(
         [
