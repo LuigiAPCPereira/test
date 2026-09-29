@@ -156,11 +156,25 @@ O teste Tk de pasta vazia foi estendido para proteger a mensagem. O novo script
 teve sintaxe Python conferida isoladamente antes do commit; suíte/ruff/mypy e
 renderização da revisão ainda precisam de ambiente capaz de executar a árvore.
 
+## FP-008 — CI gráfico revalidado em Linux e Windows
+Run `36566933575` foi reexecutado após o bloqueio externo de cobrança deixar
+de impedir a execução. Revisão exercitada: `638bae3f03f804e047a21a3794e95325fff9ff37`.
+Ubuntu 24.04: 133 testes PASS, 1 skip (OCR sem modelos locais); Ruff check,
+Ruff format --check, mypy, compileall, build wheel e suíte Tk sob Xvfb PASS.
+Windows Server 2022: 133 testes PASS, 1 skip (mesma razão); Ruff check,
+Ruff format --check, mypy, compileall, build wheel e suíte Tk com display
+obrigatório PASS. Os cinco testes de widgets deixaram de ser skips e exercitaram
+teclado/foco básico, fluxo PDF→tabela/Excel, vazio, cancelamento/fechamento e
+falha parcial. Isto valida execução automatizada da interface em ambos os SOs,
+mas não substitui inspeção visual humana de composição, escala, conteúdo longo
+e acessibilidade. FP-008 permanece parcialmente validada até essa revisão.
+
 ## Próxima ação
-FP-008: em display real, executar `python tools/visual_qa.py partial` e
-`python tools/visual_qa.py long --scale 2.0 --geometry 760x540`; validar
-teclado/foco, escala, nomes longos, estados, scroll e cancelamento, além da suíte
-Tk obrigatória. Confirmar escolha provisória após evidência visual/acessível,
-antes de FP-009 pacote Windows. CLI OCR end-to-end permanece pendente de ambiente
-com modelos. CI segue bloqueado antes das etapas; não repetir runs manuais até
-resolver a conta. Smoke corporativo somente após pacote sem Python.
+FP-008: executar o harness em display real para inspeção humana:
+`python tools/visual_qa.py partial` e
+`python tools/visual_qa.py long --scale 2.0 --geometry 760x540`; revisar
+composição, escala, nomes longos, scroll, foco/teclado e estados. A suíte Tk
+automatizada já passou em Ubuntu e Windows no run 36566933575. Após evidência
+visual/acessível, encerrar FP-008 e iniciar FP-009 pacote Windows portátil.
+CLI OCR end-to-end continua pendente de ambiente com modelos. Smoke corporativo
+somente após pacote sem Python.
