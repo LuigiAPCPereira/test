@@ -198,3 +198,20 @@ o mesmo gate Tk. Isso comprova execução automatizada cross-platform da interfa
 mas não substitui inspeção visual humana de contraste, escala 200%, recorte,
 conteúdo longo, leitor de tela ou qualidade de composição. O harness
 `tools/visual_qa.py` continua sendo a próxima evidência para encerrar FP-008.
+
+## Evidência visual no PC corporativo — 2026-09-29
+O pacote portátil foi aberto no Windows corporativo real, em máquina informada
+como sem Python instalado. A foto do estado `initial` mostra a janela inteira
+dentro do desktop: título e descrição legíveis, campo de pasta e botão de seleção
+alinhados, ações visíveis, barra de progresso, tabela com Arquivo/Tipo/Nº da
+nota/Valor/Situação e rodapé sem clipping evidente.
+
+Isto conta como inspeção humana do estado inicial e confirma que o toolkit abre
+no ambiente-alvo. A foto não mede contraste, não demonstra foco por teclado,
+não testa escala 200%, leitor de tela, conteúdo longo ou estados empty/processing/
+partial/error. Portanto FP-008 permanece parcialmente validada.
+
+Antes da janela, o SmartScreen exibiu aviso de aplicativo/editor não reconhecido.
+O usuário escolheu executar mesmo assim. Esse aviso é um gate de distribuição/
+reputação separado da qualidade visual e deve ser tratado em FP-010; não registrar
+essa decisão do usuário como prova de instalação nominal sem alertas.

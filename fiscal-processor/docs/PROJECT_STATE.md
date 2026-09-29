@@ -186,5 +186,27 @@ não uma máquina fisicamente sem Python nem uma conta comprovadamente sem
 privilégios administrativos. O usuário informou que o PC corporativo real
 não possui Python; esse host será a prova externa.
 
+
+## Evidência corporativa — launch real sem Python
+Em 2026-09-29 o usuário extraiu o artefato Windows no PC corporativo real,
+informado como sem Python instalado, e abriu `FiscalProcessor.exe`. O Windows
+exibiu aviso SmartScreen com publisher/aplicativo não reconhecido; o usuário
+escolheu executar mesmo assim. Não foi relatado prompt UAC nem solicitação de
+credencial administrativa, portanto privilégio administrativo continua
+desconhecido e não deve ser inferido.
+
+Foto fornecida pelo usuário mostra o estado inicial renderizado no Windows:
+janela completa, título, seleção de pasta, ações, progresso, tabela com cinco
+colunas e rodapé aparecem no viewport sem recorte evidente. Essa evidência valida
+launch e composição inicial no host real, mas não prova escala 200%, contraste
+medido, foco visível por teclado, leitor de tela, nomes longos ou estados
+processing/partial/error.
+
+O SmartScreen é tratado como pendência de distribuição/trust, não falha do
+runtime. A orientação oficial da Microsoft distingue reputação do publisher e
+do hash; binário sem assinatura pode exigir "Executar assim mesmo", e política
+empresarial pode bloquear a continuação. Não há decisão de comprar certificado
+ou publicar na Store nesta evidência.
+
 ## Próxima ação
-FP-008/FP-009: no PC corporativo sem Python, extrair o pacote Windows e abrir `FiscalProcessor.exe` primeiro apenas para validar inicialização e inspeção visual. Não usar documento empresarial antes do gate de privacidade/egress de FP-010. Depois registrar o resultado real do host, concluir o gate visual aplicável de FP-008 e avançar FP-010; processamento de documentos autorizados permanece FP-011.
+FP-010: manter o pacote atual sem documentos empresariais e avançar os gates de distribuição/privacidade: notices/licenças do bundle, teste de execução com egress bloqueado e baseline de tamanho/startup. Em paralelo, FP-008 ainda requer estados visuais adicionais/escala antes de ser encerrada. FP-011 com documentos autorizados permanece posterior a FP-010.
