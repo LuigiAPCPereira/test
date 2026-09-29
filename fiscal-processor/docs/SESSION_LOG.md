@@ -199,3 +199,14 @@ registrada a sequência corrigida no plano, sem acrescentar novo bloqueio.
   read model exige travessões e mensagem de não reavaliação. Teste de cancelamento
   garante que próximo PDF não inicia após pedido. Nenhuma alteração no protocolo.
 - Próximo: gates renderizados FP-008, depois empacotamento Windows FP-009.
+
+
+## 2026-09-29 — gate gráfico FP-008
+- Base 1294840; testes Tk separados e obrigatórios na CI; Linux usa Xvfb.
+- 128 PASS + 6 skips localmente; Ruff/mypy/compileall PASS. Modo obrigatório
+  comprovadamente falha sem display. Nenhum teste gráfico declarado aprovado.
+- Xvfb local preparado isoladamente, mas servidor não pôde abrir sockets;
+  instalação de sistema também indisponível. CI permanece bloqueada por cobrança.
+- Retrospectiva: skip de display podia ocultar falta de validação na CI; guardrail
+  instalado via FISCAL_REQUIRE_DISPLAY e comandos por SO. Não repetir tentativas
+  neste host; próxima execução requer ambiente gráfico/runner disponível.

@@ -86,21 +86,3 @@ def test_worker_empty_and_invalid_folders_are_distinct(tmp_path):
     assert not output.exists()
     run_batch(tmp_path / "absent", output, None, False, Event(), events)
     assert events.get().kind == "error"
-
-
-def test_real_tk_initial_controls_when_display_available():
-    tk = pytest.importorskip("tkinter")
-    try:
-        root = tk.Tk()
-    except tk.TclError:
-        pytest.skip("Tk display unavailable")
-    from fiscal_processor.presentation.desktop import Desktop
-
-    try:
-        app = Desktop(root)
-        root.update_idletasks()
-        assert str(app.process["state"]) == "disabled"
-        assert str(app.open_button["state"]) == "disabled"
-        assert not app.busy
-    finally:
-        root.destroy()

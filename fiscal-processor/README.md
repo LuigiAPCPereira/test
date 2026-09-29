@@ -172,3 +172,19 @@ Estado: implementação parcial FP-008, com lógica/worker testados (128 PASS).
 Dois testes ignorados neste ambiente: Tk sem display e OCR sem modelos.
 Renderização, teclado, acessibilidade e execução Windows ainda não validados.
 Não é ainda o pacote corporativo pronto para uso. Decisão: `docs/ADR-003-desktop-toolkit.md`.
+
+
+### Testes gráficos obrigatórios
+
+A CI agora exige display: Linux prepara Xvfb e executa a suíte com
+`FISCAL_REQUIRE_DISPLAY=1`; Windows usa Tk diretamente. Para validar localmente
+num ambiente Linux com Xvfb disponível:
+
+```sh
+FISCAL_REQUIRE_DISPLAY=1 xvfb-run -a python -m pytest tests/test_desktop_tk.py -ra
+```
+
+Sem essa variável, ambiente sem display marca os testes Tk como skip. Com ela,
+a ausência de display é erro. Resultado local mais recente: 128 PASS + 6 skips
+(cinco Tk e um OCR). A CI hospedada continua bloqueada por cobrança; os cenários
+gráficos foram preparados, mas ainda não executados. Inspeção visual segue pendente.

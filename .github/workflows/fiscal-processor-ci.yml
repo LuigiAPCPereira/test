@@ -46,7 +46,18 @@ jobs:
         run: python -m ruff format --check .
       - name: Types
         run: python -m mypy src
-      - name: Synthetic unit and integration tests
+      - name: Install virtual display (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb xauth
+      - name: Synthetic tests with required Tk display (Linux)
+        if: runner.os == 'Linux'
+        env:
+          FISCAL_REQUIRE_DISPLAY: '1'
+        run: xvfb-run -a python -m pytest -ra
+      - name: Synthetic tests with required Tk display (Windows)
+        if: runner.os == 'Windows'
+        env:
+          FISCAL_REQUIRE_DISPLAY: '1'
         run: python -m pytest -ra
       - name: Compile source
         run: python -m compileall -q src benchmarks tests

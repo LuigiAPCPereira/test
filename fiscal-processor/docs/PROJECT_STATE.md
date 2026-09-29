@@ -132,6 +132,16 @@ Tk sem display e OCR sem modelos. Ruff/mypy/compileall PASS.
 Não houve inspeção renderizada: tentativa Tk falhou por ausência de DISPLAY.
 Ver limites completos em FRONTEND.md; FP-008 parcial, Windows não validado.
 
+## FP-008 — gate gráfico preparado
+Base conferida: 1294840d0d6615345b247d14603e98de7e3ad3a1.
+CI agora exige FISCAL_REQUIRE_DISPLAY=1 e usa Xvfb no Linux. Cinco testes reais
+Tk preparados: teclado, fluxo real, vazio, cancelamento/fechamento e falha parcial.
+Suíte local: 128 PASS + 6 skips; Ruff/mypy/compileall PASS. Modo obrigatório
+executado sem display falhou como esperado (não skip), comprovando o bloqueio.
+Tentativa apt falhou por permissões; Xvfb extraído isoladamente também falhou
+por não conseguir criar sockets locais. Não repetir provisionamento neste host.
+Não houve janela renderizada ou CI executada; FP-008 continua parcial.
+
 ## Próxima ação
 FP-008: renderizar e inspecionar janela real com display; validar teclado/foco,
 escala, nomes longos, estados e cancelamento. Confirmar escolha provisória após

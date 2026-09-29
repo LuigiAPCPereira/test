@@ -134,3 +134,25 @@ estados/read models, worker real PDF→Excel, cancelamento e falhas de descobert
 longos, leitor de tela, abertura por associação do SO, tamanho/startup do bundle
 ou execução Windows. O smoke Tk incluído verificará controles iniciais quando
 houver display. FP-008 permanece parcial, sem alegação de qualidade visual pronta.
+
+
+## Gate gráfico obrigatório na CI — 2026-09-29
+`tests/test_desktop_tk.py` separa testes reais de widgets dos read models.
+`FISCAL_REQUIRE_DISPLAY=1` faz ausência de Tk/display falhar explicitamente.
+A CI prepara Xvfb/xauth no Linux e usa `xvfb-run`; Windows exige Tk diretamente.
+Não foi disparado rerun manual: cobrança da conta continua bloqueando jobs.
+
+Cenários preparados, ainda NÃO executados: Tab da seleção para processamento;
+botões desabilitados durante o lote; PDF sintético real até a tabela e Excel;
+vazio; fechar/cancelar sem destruir janela durante trabalho; falha de workbook
+com manutenção de linhas úteis e orientação contextual. Isso não substitui
+inspeção visual, leitor de tela ou escala de texto.
+
+Tentativas locais: apt falhou por restrições de setgroups/seteuid. Extração
+isolada de Xvfb Debian 21.1.7 com hashes SHA-256 verificados evitou instalação
+no sistema, mas Xvfb não conseguiu criar sockets locais. Não há display utilizável
+neste ambiente. Não repetir a instalação aqui como se fosse apenas pacote ausente.
+
+Validação atual: 128 PASS e 6 skips (cinco Tk, um OCR). Teste negativo com
+FISCAL_REQUIRE_DISPLAY=1 falhou no setup com a mensagem esperada de display
+obrigatório indisponível. Gate preparado não equivale a interface validada.
