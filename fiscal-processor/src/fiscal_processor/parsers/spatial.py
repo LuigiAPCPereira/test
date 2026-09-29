@@ -5,13 +5,23 @@ points, up to 22 points below. Multiple candidates remain ambiguous. Headers
 scope generic party labels on their own page. No answer lookup or value guessing.
 """
 
+import re
 from collections.abc import Sequence
 from dataclasses import replace
 
 from fiscal_processor.domain import ExtractionMode, FiscalExtraction
 from fiscal_processor.domain.text import TextSpan
 
-from .labelled import CNPJ_LABELS, LABELS, NAME_LABELS, SECTIONS, normalized, parse_invoice
+from .labelled import (
+    CNPJ_LABELS,
+    DATE,
+    LABELS,
+    MONEY,
+    NAME_LABELS,
+    SECTIONS,
+    normalized,
+    parse_invoice,
+)
 
 MARKERS = {"DANFE", "NFS-E", "NFSE - PRESTADOR", "NOTA FISCAL DE SERVICOS ELETRONICA"}
 CANONICAL = {
@@ -24,6 +34,20 @@ CANONICAL = {
     "cnpj": "CNPJ DO EMITENTE",
     "amount": "VALOR TOTAL DA NOTA",
 }
+
+
+
+def _same_row_value(field: str, value: str) -> bool:
+    """Accept horizontal candidates only when their syntax matches the target field."""
+    if field == "amount":
+        return MONEY.fullmatch(value) is not None
+    if field == "date":
+        return DATE.fullmatch(value) is not None
+    if field == "cnpj":
+        return re.fullmatch(r"[0-9./\- ]+", value) is not None
+    if field in {"number", "series", "combined"}:
+        return re.fullmatch(r"[A-Za-z0-9./\- ]+", value) is not None
+    return False
 
 
 def parse_spans(
@@ -96,6 +120,7 @@ def parse_spans(
                 and name not in reserved
                 and abs(span.top - anchor.top) <= 4
                 and 0 < span.left - anchor.right <= 220
+                and _same_row_value(field, span.text.strip())
             ]
             candidates = list(dict.fromkeys([*below, *same_row]))
         # One emitted observation per candidate lets the parser preserve ambiguity.
