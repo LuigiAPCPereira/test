@@ -43,7 +43,7 @@ def run_packaged_smoke(models: Path | None) -> None:
             height=64,
             stride=64 * 3,
             mode="RGB",
-            pixels=b"\\xff" * (64 * 64 * 3),
+            pixels=bytes([255]) * (64 * 64 * 3),
             dpi=72,
         )
         RapidSmallAdapter(models).recognize(blank, 0)
