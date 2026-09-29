@@ -36,7 +36,7 @@ try {
         "--collect-all", "onnxruntime",
         "--collect-all", "pypdfium2",
         "--collect-all", "pypdfium2_raw",
-        "packaging\windows_entry.py"
+        "src\fiscal_processor\presentation\desktop.py"
     )
     python @pyInstallerArgs
     if ($LASTEXITCODE -ne 0) {
