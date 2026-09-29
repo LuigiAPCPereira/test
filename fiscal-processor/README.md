@@ -204,3 +204,23 @@ Estados disponíveis: `initial`, `selected`, `processing`, `empty`,
 `success`, `partial`, `error`, `cancelled` e `long`. A janela marca
 explicitamente que os dados são sintéticos. Use um display real; executar o
 harness não aprova FP-008 por si só.
+
+
+## Pacote Windows portátil — FP-009
+
+O workflow gera `FiscalProcessor-windows-x64.zip` em Windows x64 com runtime
+Python, Tk, PDFium, RapidOCR, ONNX Runtime e os modelos OCR small incluídos.
+O usuário final não instala Python nem executa `pip`. Após extrair o ZIP,
+abrir `FiscalProcessor\FiscalProcessor.exe`; manter a pasta `_internal`
+junto do executável.
+
+Validação CI na revisão `cc28a2c`: gates Linux/Windows PASS e smoke do ZIP
+extraído PASS com `python` ausente do PATH. O smoke também inicializou Tk e
+executou o OCR empacotado com modelos locais. Isso não prova uma máquina
+fisicamente sem Python nem uma conta sem privilégios administrativos; esses
+pontos ficam para o PC corporativo autorizado.
+
+Artefato do run 36575272863: `FiscalProcessor-windows-x64.zip`, SHA-256
+`10892dd393e1d80f277b410f4fea15bc74159744d76c6ac1fb81eac80ffa916d`.
+Para o primeiro teste corporativo, apenas abrir o aplicativo e inspecionar a
+interface; não usar PDFs empresariais antes dos gates de privacidade/egress.
