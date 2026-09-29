@@ -54,7 +54,7 @@ FP-004 / FiscalOCRBench implementado e executado com small, medium e Tesseract.
 [Resultados e limitações](docs/RESEARCH-003-ocr-first-run.md). Validação independente e escolha final da engine ocorrerão após pacote Windows
 (ADR-002); small provisório permite avançar nos parsers. Corpus espacial: 48/48 verificações
 por motor, incluindo ausências esperadas ([relatório](docs/RESEARCH-004-ocr-spatial.md)).
-58 testes PASS. Parsers/CLI ainda pendentes.
+Parsers e CLI disponíveis; validação representativa continua pendente.
 
 ## Documentação
 
@@ -74,7 +74,7 @@ por motor, incluindo ausências esperadas ([relatório](docs/RESEARCH-004-ocr-sp
 
 
 Avaliação local com corpus autorizado: [guia](docs/LOCAL_CORPUS.md).
-O avaliador é ferramenta de desenvolvimento; a CLI final permanece pendente.
+O avaliador é ferramenta de desenvolvimento; a CLI do produto está descrita abaixo.
 
 Decisão atual: [small provisório e teste corporativo após pacote Windows](docs/ADR-002-provisional-ocr.md).
 
@@ -98,7 +98,7 @@ O extra `ocr` instala RapidOCR 3.9.2, ONNX Runtime 1.24.2 e Pillow 12.3.0.
 Preparar modelos em etapa separada com `python -m benchmarks.prepare_models /pasta/models`.
 `RapidSmallAdapter` verifica hashes antes de carregar e não baixa modelos em execução.
 `extract_evidence` seleciona texto nativo ou OCR por página; `parse_evidence`
-preserva modo e flags no resultado fiscal. A CLI de produto ainda será implementada.
+preserva modo e flags no resultado fiscal. A CLI abaixo integra esse fluxo ao Excel.
 
 Teste opcional de integração real (somente fixtures sintéticas, modelos já locais):
 
@@ -112,3 +112,40 @@ Sem a variável, o smoke OCR é marcado como skip, os demais testes permanecem a
 108 testes PASS com OCR habilitado no Linux. Heurística de texto útil e precisão
 real ainda exigem avaliação no pacote Windows; bloqueio de rede Python no teste
 não substitui o gate de egress no SO.
+
+
+## CLI local (FP-007)
+
+Para desenvolvimento, após instalar o pacote:
+
+```sh
+python -m fiscal_processor /pasta/pdfs --output /pasta/Controle_Notas_Fiscais.xlsx
+python -m fiscal_processor /pasta/pdfs --output /pasta/Controle_Notas_Fiscais.xlsx --models /pasta/models
+```
+
+Também disponível pelo comando `fiscal-processor`. OCR requer o extra `ocr` e
+modelos preparados previamente (seção anterior); não há download na execução.
+PDFs textuais funcionam sem configurar modelos. Isto ainda exige Python no
+ambiente de desenvolvimento; não é o pacote Windows destinado ao usuário.
+
+- Descoberta não recursiva de arquivos `.pdf`/`.PDF`, em ordem pelo nome;
+  links simbólicos de arquivos são ignorados.
+- Conteúdo já registrado no Excel é ignorado por SHA-256. Use `--reprocess`
+  para atualizar campos automáticos; OS, validade e observações são preservados.
+- Progresso informa índice/total, estado e código sanitizado, sem nome/caminho
+  ou valores fiscais. O índice corresponde à ordem de descoberta.
+- Cada documento extraído é salvo atomicamente. Um erro de extração é informado
+  na saída e não cria linha fiscal incompleta nem apaga uma linha existente.
+  Outros documentos continuam. Erro de leitura/gravação do workbook interrompe
+  o lote; registros previamente salvos continuam válidos.
+- Não execute dois processos sobre a mesma planilha. Feche-a no Excel antes de
+  processar. Cancelamento por Ctrl+C preserva gravações já concluídas.
+- Pasta vazia não cria/altera planilha. `--dpi` aceita 72–300 (padrão 200).
+- Códigos de saída: **0** concluído sem novas falhas/revisões (ou vazio), **1**
+  há revisão/falha de documento, **2** falha do lote/configuração, **130** cancelado.
+  `SKIPPED` significa apenas já registrado, não comprova qualidade da linha anterior.
+
+Validação deste bloco: 117 testes PASS, um smoke OCR opcional não executado no
+ambiente atual; Ruff, mypy e compileall PASS no Linux. O smoke OCR real anterior
+permanece evidência do bloco FP-005, não uma nova execução. Windows e corpus
+corporativo ainda não validados.

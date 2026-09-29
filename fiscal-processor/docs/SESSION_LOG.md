@@ -175,3 +175,15 @@ registrada a sequência corrigida no plano, sem acrescentar novo bloqueio.
 - Retrospectiva: comportamento lazy, seleção por página e preservação de flags
   cobertos por testes. Limites da heurística e ausência de prova SO/Windows no checkpoint.
 - Próxima tarefa FP-007 (lote/CLI/Excel); não repetir tentativa CI por bloqueio de cobrança.
+
+
+## 2026-09-29 — FP-007 lote/CLI
+- Base: 60bf61f, branch feat/fiscal-processor-local-v0.1, Draft PR #4.
+- Batch sequencial com progresso, deduplicação, reprocessamento e falhas isoladas;
+  CLI conecta PDF/OCR/parser/Excel. Falhas de persistência interrompem o lote.
+- 117 PASS + 1 smoke OCR skip; Ruff/mypy/compileall PASS no Linux.
+  Dez testes novos, incluindo PDFium/openpyxl reais. Windows/CLI OCR pendentes.
+- Retrospectiva: falha ao reprocessar não deve apagar extração anterior; proteção
+  instalada como teste de regressão que compara os bytes do workbook. Evidência
+  histórica OCR distinguida da validação atual. Nenhuma mudança no protocolo.
+- Próxima tarefa: FP-008, interface; manter CI bloqueado por cobrança explícito.

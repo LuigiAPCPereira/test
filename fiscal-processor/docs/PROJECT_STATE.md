@@ -1,4 +1,4 @@
-# PROJECT_STATE — 2026-09-28 UTC
+# PROJECT_STATE — 2026-09-29 UTC
 
 ## Ref observada e escopo
 - Repositório: LuigiAPCPereira/test
@@ -102,8 +102,27 @@ Pode rejeitar páginas curtas úteis ou aceitar camada textual ruim: calibrar co
 corpus corporativo após pacote; não alegar qualidade fiscal geral. OCR_LOW_QUALITY
 marca saída vazia; ainda não há limiar de confiança calibrado por campo.
 
+## FP-007 — lote e CLI
+Base remota conferida: 60bf61fd7ba69ad1a748a052f4e3ad242d1640a7, Draft PR #4.
+Implementados application.batch, CLI e entrypoint python -m fiscal_processor.
+Descoberta não recursiva, SHA-256, skip por conteúdo e reprocessamento explícito.
+Cada upsert mantém contrato manual e save atômico. Falha de extração não cria
+linha com modo fiscal inventado nem sobrescreve resultado anterior: aparece no
+resultado do lote/saída sanitizada. Falha do workbook interrompe lote; commits
+por documento anteriores permanecem. Ctrl+C propaga e preserva o que foi salvo.
+Hash verificado antes/depois da extração detecta mudanças comuns, mas não é
+snapshot imutável nem proteção contra escritor concorrente. Um escritor por
+workbook; sem otimização de releitura XLSX antes de baseline de desempenho.
+117 testes PASS + 1 skip OCR opt-in neste ambiente Linux; 10 novos testes cobrem
+fluxo real PDF→Excel, duplicatas, manuais, cancelamento, entrada alterada,
+PDF inválido, modelos não configurados e workbook inválido/falha de gravação.
+Ruff check/format, mypy (21 arquivos) e compileall PASS.
+OCR real do bloco anterior não reexecutado; CLI com OCR e Windows ainda não
+validados. Guia operacional/códigos de saída no README.
+
 ## Próxima ação
-FP-007: orquestrar documento/lote → parser → Excel idempotente, hash do PDF,
-falhas isoladas e CLI; usar adapters existentes. GUI/pacote Windows depois.
-CI hospedado aguarda correção da conta pelo titular; não bloqueia trabalho local.
+FP-008: selecionar toolkit e implementar interface desktop conforme FRONTEND.md,
+reutilizando batch/progress e contratos; validar também CLI→OCR→Excel no próximo
+ambiente com modelos provisionados. FP-009 pacote Windows permanece pendente.
+CI hospedado aguarda correção da conta pelo titular; não repetir runs manuais.
 Validação corporativa mantém sequência ADR-002, sem exigir Python do usuário.

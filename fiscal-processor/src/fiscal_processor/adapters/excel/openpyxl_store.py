@@ -76,6 +76,19 @@ class OpenpyxlInvoiceStore:
         self.path = Path(path)
         self._now = now or (lambda: datetime.now(UTC))
 
+    def contains(self, source_sha256: str) -> bool:
+        workbook, worksheet = self._load_or_create()
+        try:
+            matches = sum(
+                worksheet.cell(row, self.SHA_COLUMN).value == source_sha256
+                for row in range(2, worksheet.max_row + 1)
+            )
+            if matches > 1:
+                raise WorkbookContractError("duplicate technical key in workbook")
+            return bool(matches == 1)
+        finally:
+            workbook.close()
+
     def upsert(self, extraction: FiscalExtraction) -> UpsertResult:
         workbook, worksheet = self._load_or_create()
         try:

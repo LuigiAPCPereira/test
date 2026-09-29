@@ -17,6 +17,9 @@ dependencies = [
   "pypdfium2==5.13.0",
 ]
 
+[project.scripts]
+fiscal-processor = "fiscal_processor.cli:main"
+
 [project.optional-dependencies]
 ocr = [
   "rapidocr==3.9.2",
