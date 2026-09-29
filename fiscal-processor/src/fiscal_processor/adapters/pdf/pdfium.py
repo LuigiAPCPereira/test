@@ -5,53 +5,20 @@ fiscal parsing; those concerns live behind different boundaries.
 """
 
 import math
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from fiscal_processor.domain.text import TextSpan
+from fiscal_processor.domain.text import (
+    PdfDocumentContent,
+    PdfPageContent,
+    PdfTextBlock,
+    RenderedPage,
+    TextSpan,
+)
 
 
 class PdfAdapterError(RuntimeError):
     """Raised when a PDF cannot be opened or processed safely."""
-
-
-@dataclass(frozen=True, slots=True)
-class PdfTextBlock:
-    text: str
-    left: float
-    bottom: float
-    right: float
-    top: float
-
-
-@dataclass(frozen=True, slots=True)
-class PdfPageContent:
-    page_index: int
-    width_points: float
-    height_points: float
-    text: str
-    blocks: tuple[PdfTextBlock, ...]
-
-
-@dataclass(frozen=True, slots=True)
-class PdfDocumentContent:
-    pages: tuple[PdfPageContent, ...]
-
-    @property
-    def text(self) -> str:
-        return "\n\f\n".join(page.text for page in self.pages)
-
-
-@dataclass(frozen=True, slots=True)
-class RenderedPage:
-    page_index: int
-    width: int
-    height: int
-    stride: int
-    mode: str
-    pixels: bytes
-    dpi: int
 
 
 class PdfiumAdapter:

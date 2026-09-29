@@ -18,6 +18,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+ocr = [
+  "rapidocr==3.9.2",
+  "onnxruntime==1.24.2",
+  "Pillow==12.3.0",
+]
 dev = [
   "mypy>=1.15,<2",
   "pytest>=8.3,<9",
@@ -46,5 +51,5 @@ packages = ["fiscal_processor"]
 mypy_path = "src"
 
 [[tool.mypy.overrides]]
-module = ["openpyxl", "openpyxl.*", "pypdfium2", "pypdfium2.*"]
+module = ["openpyxl", "openpyxl.*", "pypdfium2", "pypdfium2.*", "rapidocr", "rapidocr.*", "numpy", "numpy.*", "PIL", "PIL.*"]
 ignore_missing_imports = true

@@ -164,3 +164,14 @@ registrada a sequência corrigida no plano, sem acrescentar novo bloqueio.
 - Retrospectiva: fronteiras de seção/página e candidatos ambíguos protegidos por
   testes; causa externa de CI registrada no checkpoint, sem reexecuções inúteis.
 - Próximo bloco: adapter OCR small e fallback por página.
+
+## 2026-09-29 UTC — FP-005 OCR local integrado
+- Base 063bb49 recuperada após interrupção; alterações locais em andamento preservadas.
+- Adapter small lazy com hashes/versões, entrada em memória, erros sanitizados.
+- Ports/DTOs internos evitam application depender do adapter PDF concreto.
+- Fallback por página, modo misto e propagação de flags; sem retorno parcial em erro.
+- 108 testes com OCR real habilitado PASS; Ruff/mypy/compileall PASS.
+- Smoke real: dois PDFs rasterizados sintéticos + branco; rede Python bloqueada.
+- Retrospectiva: comportamento lazy, seleção por página e preservação de flags
+  cobertos por testes. Limites da heurística e ausência de prova SO/Windows no checkpoint.
+- Próxima tarefa FP-007 (lote/CLI/Excel); não repetir tentativa CI por bloqueio de cobrança.

@@ -91,3 +91,24 @@ de empacotamento Python, não o executável portátil final.
 `PdfiumAdapter.extract_spans` como entrada nativa. 96 testes locais PASS.
 CI hospedado está bloqueado por faturamento/limite de gastos, conforme mensagem
 informada pelo titular; execução Windows ainda não validada.
+
+## OCR local integrado
+
+O extra `ocr` instala RapidOCR 3.9.2, ONNX Runtime 1.24.2 e Pillow 12.3.0.
+Preparar modelos em etapa separada com `python -m benchmarks.prepare_models /pasta/models`.
+`RapidSmallAdapter` verifica hashes antes de carregar e não baixa modelos em execução.
+`extract_evidence` seleciona texto nativo ou OCR por página; `parse_evidence`
+preserva modo e flags no resultado fiscal. A CLI de produto ainda será implementada.
+
+Teste opcional de integração real (somente fixtures sintéticas, modelos já locais):
+
+```sh
+python -m pip install -e '.[dev,ocr]'
+python -m benchmarks.prepare_models /pasta/models
+FISCAL_OCR_MODELS=/pasta/models python -m pytest -ra
+```
+
+Sem a variável, o smoke OCR é marcado como skip, os demais testes permanecem ativos.
+108 testes PASS com OCR habilitado no Linux. Heurística de texto útil e precisão
+real ainda exigem avaliação no pacote Windows; bloqueio de rede Python no teste
+não substitui o gate de egress no SO.

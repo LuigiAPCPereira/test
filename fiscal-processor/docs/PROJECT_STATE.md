@@ -85,8 +85,25 @@ cabeçalhos nem herda seção de outra página; múltiplos candidatos geram revi
 Limites explícitos: valores até 22 pontos abaixo, alinhamento até oito pontos,
 labels inteiros; nomes quebrados e tabelas complexas podem exigir revisão.
 
+## FP-005 — OCR small e fallback
+Adapter RapidSmallAdapter implementado; RapidOCR 3.9.2/ORT 1.24.2, modelos locais
+validados por SHA-256 antes de importar/inicializar a engine. Inicialização lazy;
+PDF textual não exige modelos. Rasters enviados em memória BGR; sem download
+no caminho de inferência nem gravação de imagens temporárias.
+Contratos PDF/raster movidos ao domínio e preservados via exports do adapter.
+Application extract_evidence seleciona texto/OCR por página e retorna modo
+NATIVE_TEXT/OCR/MIXED; parse_evidence preserva flags de revisão. Falha de OCR
+propaga erro, não sucesso parcial.
+108 testes PASS com smoke OCR real habilitado; Ruff/mypy/compileall PASS.
+Dois PDFs rasterizados sintéticos + página branca, com socket.connect e DNS
+Python bloqueados. Isso não comprova bloqueio de rede nativa/SO nem Windows.
+Heurística inicial: >=40 caracteres alfanuméricos, >=95% imprimíveis sem U+FFFD.
+Pode rejeitar páginas curtas úteis ou aceitar camada textual ruim: calibrar com
+corpus corporativo após pacote; não alegar qualidade fiscal geral. OCR_LOW_QUALITY
+marca saída vazia; ainda não há limiar de confiança calibrado por campo.
+
 ## Próxima ação
-Integrar adapter OCR small local ao mesmo contrato TextSpan, sem downloads em
-runtime, e orquestrar fallback por página. Depois FP-007 (PDF→Excel e CLI).
+FP-007: orquestrar documento/lote → parser → Excel idempotente, hash do PDF,
+falhas isoladas e CLI; usar adapters existentes. GUI/pacote Windows depois.
 CI hospedado aguarda correção da conta pelo titular; não bloqueia trabalho local.
 Validação corporativa mantém sequência ADR-002, sem exigir Python do usuário.
