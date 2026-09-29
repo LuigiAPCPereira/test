@@ -36,7 +36,6 @@ CANONICAL = {
 }
 
 
-
 def _same_row_value(field: str, value: str) -> bool:
     """Accept horizontal candidates only when their syntax matches the target field."""
     if field == "amount":
