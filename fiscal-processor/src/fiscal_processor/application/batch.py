@@ -20,6 +20,7 @@ class DocumentResult:
     outcome: str
     source_sha256: str | None = None
     error_code: str | None = None
+    extraction: FiscalExtraction | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,6 +28,7 @@ class BatchResult:
     total: int
     documents: tuple[DocumentResult, ...]
     error_code: str | None = None
+    cancelled: bool = False
 
 
 def discover_pdfs(folder: Path) -> tuple[Path, ...]:
@@ -57,6 +59,8 @@ def process_batch(
     *,
     reprocess: bool = False,
     progress: Callable[[DocumentResult, int], None] | None = None,
+    cancelled: Callable[[], bool] | None = None,
+    started: Callable[[int, Path], None] | None = None,
 ) -> BatchResult:
     """Save each completed document. Never replace good rows with extraction failures.
 
@@ -71,6 +75,10 @@ def process_batch(
             progress(result, len(paths))
 
     for index, path in enumerate(paths, 1):
+        if cancelled is not None and cancelled():
+            return BatchResult(len(paths), tuple(results), cancelled=True)
+        if started is not None:
+            started(index, path)
         try:
             if path.is_symlink():
                 raise ValueError("INPUT_SYMLINK")
@@ -99,5 +107,5 @@ def process_batch(
         except Exception:
             record(DocumentResult(index, "FAILED", digest, "WORKBOOK_WRITE_FAILED"))
             return BatchResult(len(paths), tuple(results), "WORKBOOK_WRITE_FAILED")
-        record(DocumentResult(index, extraction.status.value, digest))
+        record(DocumentResult(index, extraction.status.value, digest, extraction=extraction))
     return BatchResult(len(paths), tuple(results))

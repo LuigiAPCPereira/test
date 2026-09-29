@@ -149,3 +149,26 @@ Validação deste bloco: 117 testes PASS, um smoke OCR opcional não executado n
 ambiente atual; Ruff, mypy e compileall PASS no Linux. O smoke OCR real anterior
 permanece evidência do bloco FP-005, não uma nova execução. Windows e corpus
 corporativo ainda não validados.
+
+
+## Interface desktop — primeira implementação
+
+```sh
+python -m fiscal_processor.presentation.desktop --models /pasta/models
+```
+
+Também registrada como `fiscal-processor-desktop` ao instalar o pacote atualizado.
+Tkinter/Tk deve estar disponível no ambiente de desenvolvimento; no Windows
+portátil será incluído pelo empacotamento ainda pendente. PDFs textuais podem ser
+processados sem `--models`.
+
+Escolha a pasta e use **Processar notas fiscais**. A planilha padrão será criada
+nessa pasta. A tabela apresenta somente resultados reais e orientações de revisão.
+**Cancelar** aguarda o documento atual; fechar durante o lote solicita cancelamento,
+e a janela pode ser fechada novamente quando terminar. Feche o Excel antes de
+processar; nunca use CLI e interface simultaneamente na mesma planilha.
+
+Estado: implementação parcial FP-008, com lógica/worker testados (128 PASS).
+Dois testes ignorados neste ambiente: Tk sem display e OCR sem modelos.
+Renderização, teclado, acessibilidade e execução Windows ainda não validados.
+Não é ainda o pacote corporativo pronto para uso. Decisão: `docs/ADR-003-desktop-toolkit.md`.

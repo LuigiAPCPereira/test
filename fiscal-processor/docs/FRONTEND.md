@@ -92,7 +92,8 @@ O desenho é informacional, não uma exigência visual pixel-perfect.
 
 ## Toolkit
 
-Ainda não decidido.
+Tkinter/ttk adotado provisoriamente para a primeira fatia (ADR-003).
+A decisão final depende de renderização, acessibilidade e bundle Windows medidos.
 
 Candidatos para spike:
 - UI nativa Python simples;
@@ -108,3 +109,28 @@ A escolha deve medir:
 - comportamento sem privilégio administrativo.
 
 A arquitetura do core não dependerá dessa escolha.
+
+
+
+## Implementação inicial — FP-008
+Tese visual: utilitário de revisão documental, com título compacto, pasta e ação
+primária no topo, progresso sem ETA e tabela como superfície principal. Widgets
+temáticos nativos; sem decoração adicional ou informações de engine na tela.
+
+`presentation.desktop` usa o batch existente por worker thread e fila. Tk é
+atualizado somente na thread principal. `state` prepara mensagens e linhas de
+resultado sem acessar adapters. Cancelamento cooperativo entre documentos;
+fechar durante trabalho solicita cancelamento e mantém a janela aberta até o
+worker concluir (fechar novamente após conclusão).
+
+Resultados locais mostram arquivo/tipo/número/valor/situação somente após save.
+Duplicatas mostram valores não reavaliados como travessão. Falhas e revisões
+mantêm resultados úteis na tabela. A planilha fica na pasta de entrada; o botão
+para abri-la só é habilitado fora do processamento quando o arquivo existe.
+
+Validação: 128 testes PASS, 2 skips (Tk sem display e OCR sem modelos). Testados
+estados/read models, worker real PDF→Excel, cancelamento e falhas de descoberta.
+**Não validado:** renderização, foco/teclado reais, contraste, escala 200%, nomes
+longos, leitor de tela, abertura por associação do SO, tamanho/startup do bundle
+ou execução Windows. O smoke Tk incluído verificará controles iniciais quando
+houver display. FP-008 permanece parcial, sem alegação de qualidade visual pronta.

@@ -187,3 +187,15 @@ registrada a sequência corrigida no plano, sem acrescentar novo bloqueio.
   instalada como teste de regressão que compara os bytes do workbook. Evidência
   histórica OCR distinguida da validação atual. Nenhuma mudança no protocolo.
 - Próxima tarefa: FP-008, interface; manter CI bloqueado por cobrança explícito.
+
+
+## 2026-09-29 — FP-008 interface inicial
+- Base 881d121; Tkinter/ttk provisório conforme ADR-003.
+- Worker/fila, read models, tabela, seleção de pasta, cancelamento entre PDFs e
+  abertura de planilha. CLI reutiliza composition root extraído sem mudar opções.
+- 128 testes PASS + 2 skips; Ruff/mypy/compileall PASS no Linux.
+- Tk real não abriu: ambiente sem display. UI visual/a11y e Windows pendentes.
+- Retrospectiva: duplicatas não autorizam inferir qualidade anterior; teste de
+  read model exige travessões e mensagem de não reavaliação. Teste de cancelamento
+  garante que próximo PDF não inicia após pedido. Nenhuma alteração no protocolo.
+- Próximo: gates renderizados FP-008, depois empacotamento Windows FP-009.

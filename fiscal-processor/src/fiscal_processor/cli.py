@@ -3,14 +3,10 @@
 import argparse
 from collections import Counter
 from pathlib import Path
-from typing import NoReturn
 
 from fiscal_processor.adapters.excel.openpyxl_store import OpenpyxlInvoiceStore
-from fiscal_processor.adapters.ocr import RapidSmallAdapter
-from fiscal_processor.adapters.pdf import PdfiumAdapter
 from fiscal_processor.application.batch import DocumentResult, discover_pdfs, process_batch
-from fiscal_processor.application.extraction import extract_evidence, parse_evidence
-from fiscal_processor.domain import FiscalExtraction
+from fiscal_processor.composition import build_extractor
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -33,13 +29,7 @@ def main(argv: list[str] | None = None) -> int:
         if not paths:
             print("EMPTY: nenhum PDF regular na pasta; planilha não alterada.")
             return 0
-        pdf = PdfiumAdapter()
-        ocr = RapidSmallAdapter(args.models) if args.models is not None else None
-
-        def extract(path: Path, digest: str) -> FiscalExtraction:
-            # Missing configuration fails only when a page actually needs OCR.
-            evidence = extract_evidence(path, pdf, ocr or _UnavailableOcr(), dpi=args.dpi)
-            return parse_evidence(evidence, source_sha256=digest, source_filename=path.name)
+        extract = build_extractor(args.models, args.dpi)
 
         result = process_batch(
             paths,
@@ -60,8 +50,3 @@ def main(argv: list[str] | None = None) -> int:
     except Exception:
         print("BATCH_FAILED: verifique a pasta e as dependências locais.")
         return 2
-
-
-class _UnavailableOcr:
-    def recognize(self, page: object, page_index: int) -> NoReturn:
-        raise RuntimeError("OCR_NOT_CONFIGURED")

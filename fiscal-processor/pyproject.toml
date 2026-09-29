@@ -20,6 +20,9 @@ dependencies = [
 [project.scripts]
 fiscal-processor = "fiscal_processor.cli:main"
 
+[project.gui-scripts]
+fiscal-processor-desktop = "fiscal_processor.presentation.desktop:main"
+
 [project.optional-dependencies]
 ocr = [
   "rapidocr==3.9.2",

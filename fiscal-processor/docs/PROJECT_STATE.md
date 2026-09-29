@@ -120,9 +120,21 @@ Ruff check/format, mypy (21 arquivos) e compileall PASS.
 OCR real do bloco anterior não reexecutado; CLI com OCR e Windows ainda não
 validados. Guia operacional/códigos de saída no README.
 
+## FP-008 — primeira interface desktop
+Base conferida: 881d1212232212d5f19d90a932a737fb5447b664, Draft PR #4.
+Tkinter/ttk provisório, ADR-003; pasta/processamento/progresso/tabela e abertura
+local da planilha. Composition root compartilhado com CLI; worker sem widgets,
+fila consumida via after na thread principal. Cancelamento no batch entre
+PDFs, após gravação; fechamento em execução solicita cancelamento sem matar worker.
+DocumentResult inclui extração somente após save, para read model da tabela;
+duplicatas não inventam campos anteriores. 128 PASS + 2 skips no Linux:
+Tk sem display e OCR sem modelos. Ruff/mypy/compileall PASS.
+Não houve inspeção renderizada: tentativa Tk falhou por ausência de DISPLAY.
+Ver limites completos em FRONTEND.md; FP-008 parcial, Windows não validado.
+
 ## Próxima ação
-FP-008: selecionar toolkit e implementar interface desktop conforme FRONTEND.md,
-reutilizando batch/progress e contratos; validar também CLI→OCR→Excel no próximo
-ambiente com modelos provisionados. FP-009 pacote Windows permanece pendente.
-CI hospedado aguarda correção da conta pelo titular; não repetir runs manuais.
-Validação corporativa mantém sequência ADR-002, sem exigir Python do usuário.
+FP-008: renderizar e inspecionar janela real com display; validar teclado/foco,
+escala, nomes longos, estados e cancelamento. Confirmar escolha provisória após
+evidência visual/acessível, antes de FP-009 pacote Windows. CLI OCR end-to-end
+permanece pendente de ambiente com modelos. CI segue bloqueado por cobrança;
+não repetir runs manuais. Smoke corporativo somente após pacote sem Python.
