@@ -152,3 +152,17 @@ def test_parse_guided_ocr_retry_replaces_fiscally_useless_native_layer():
     assert result.invoice_number == "000321"
     assert result.amount is not None
     assert result.status == ProcessingStatus.OK
+
+
+
+def test_parse_guided_ocr_retry_keeps_better_native_result_when_ocr_is_worse():
+    pdf = Pdf(["DANFE " + "A" * 50])
+    ocr = Ocr(low=True)
+    result = extract_and_parse(
+        Path("synthetic.pdf"),
+        pdf,
+        ocr,
+        source_sha256="a" * 64,
+        source_filename="synthetic.pdf",
+    )
+    assert result.extraction_mode == ExtractionMode.NATIVE_TEXT

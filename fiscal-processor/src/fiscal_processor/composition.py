@@ -6,7 +6,7 @@ from typing import NoReturn
 
 from fiscal_processor.adapters.ocr import RapidSmallAdapter
 from fiscal_processor.adapters.pdf import PdfiumAdapter
-from fiscal_processor.application.extraction import extract_evidence, parse_evidence
+from fiscal_processor.application.extraction import extract_and_parse
 from fiscal_processor.domain import FiscalExtraction
 
 
@@ -22,7 +22,13 @@ def build_extractor(
     ocr = RapidSmallAdapter(model_dir) if model_dir is not None else UnavailableOcr()
 
     def extract(path: Path, digest: str) -> FiscalExtraction:
-        evidence = extract_evidence(path, pdf, ocr, dpi=dpi)
-        return parse_evidence(evidence, source_sha256=digest, source_filename=path.name)
+        return extract_and_parse(
+            path,
+            pdf,
+            ocr,
+            source_sha256=digest,
+            source_filename=path.name,
+            dpi=dpi,
+        )
 
     return extract

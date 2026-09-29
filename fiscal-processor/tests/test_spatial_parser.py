@@ -127,3 +127,39 @@ def test_amount_may_be_in_same_row_to_the_right_of_its_label():
     )
     assert result.amount == Decimal("1234.56")
     assert QualityFlag.MISSING_AMOUNT not in result.quality_flags
+
+
+
+def test_standard_danfe_aliases_sections_and_repeated_identifiers():
+    result = parse(
+        [
+            box("DANFE - DOCUMENTO AUXILIAR DA NOTA FISCAL ELETRÔNICA", 320, 20),
+            box("Nº", 320, 50),
+            box("000123", 445, 50),
+            box("SÉRIE", 320, 75),
+            box("001", 445, 75),
+            box("Nº", 20, 20),
+            box("000123", 145, 20),
+            box("SÉRIE", 20, 45),
+            box("001", 145, 45),
+            box("IDENTIFICAÇÃO DO EMITENTE", 20, 100),
+            box("NOME / RAZÃO SOCIAL", 20, 125),
+            box("EMITENTE SINTÉTICO LTDA", 20, 145),
+            box("CNPJ", 20, 170),
+            box("12.345.678/0001-95", 20, 190),
+            box("DESTINATÁRIO / REMETENTE", 20, 230),
+            box("NOME / RAZÃO SOCIAL", 20, 255),
+            box("DESTINATÁRIO SINTÉTICO SA", 20, 275),
+            box("DATA DA EMISSÃO", 320, 255),
+            box("29/09/2026", 320, 275),
+            box("VALOR TOTAL DA NOTA", 20, 340),
+            box("1.234,56", 145, 340),
+        ]
+    )
+    assert result.document_type == DocumentType.NFE
+    assert result.invoice_number == "000123"
+    assert result.series == "001"
+    assert result.issuer_name == "EMITENTE SINTÉTICO LTDA"
+    assert result.issuer_cnpj == "12345678000195"
+    assert result.recipient_name == "DESTINATÁRIO SINTÉTICO SA"
+    assert result.amount == Decimal("1234.56")

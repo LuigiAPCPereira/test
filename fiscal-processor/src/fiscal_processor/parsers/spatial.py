@@ -34,7 +34,20 @@ def parse_spans(
     extraction_mode: ExtractionMode = ExtractionMode.NATIVE_TEXT,
 ) -> FiscalExtraction:
     labelled = [(span, normalized(span.text.partition(":")[0])) for span in spans]
-    lines = [span.text for span, key in labelled if key in MARKERS]
+    lines: list[str] = []
+    for span, key in labelled:
+        whole = normalized(span.text)
+        if key in MARKERS:
+            lines.append(span.text)
+        elif "DANFE" in whole or "DOCUMENTO AUXILIAR DA NOTA FISCAL ELETRONICA" in whole:
+            lines.append("DANFE")
+        elif (
+            "NOTA FISCAL DE SERVICO ELETRONICA" in whole
+            or "NOTA FISCAL DE SERVICOS ELETRONICA" in whole
+            or "NOTA FISCAL ELETRONICA DE SERVICO" in whole
+            or "NOTA FISCAL ELETRONICA DE SERVICOS" in whole
+        ):
+            lines.append("NFS-e")
     reserved = set(LABELS) | NAME_LABELS | CNPJ_LABELS | set(SECTIONS) | MARKERS
     for anchor, key in labelled:
         field = LABELS.get(key)
@@ -61,7 +74,7 @@ def parse_spans(
         if inline:
             candidates = [inline]
         else:
-            candidates = [
+            below = [
                 span.text.strip()
                 for span, name in labelled
                 if span.page == anchor.page
@@ -76,6 +89,15 @@ def parse_spans(
                     for h, hkey in labelled
                 )
             ]
+            same_row = [
+                span.text.strip()
+                for span, name in labelled
+                if span.page == anchor.page
+                and name not in reserved
+                and abs(span.top - anchor.top) <= 4
+                and 0 < span.left - anchor.right <= 220
+            ]
+            candidates = list(dict.fromkeys([*below, *same_row]))
         # One emitted observation per candidate lets the parser preserve ambiguity.
         for value in candidates or [""]:
             lines.append(f"{CANONICAL[field]}: {value}")

@@ -29,6 +29,9 @@ LABELS = {
     "NUMERO/SERIE": "combined",
     "SERIE": "series",
     "DATA DE EMISSAO": "date",
+    "DATA DA EMISSAO": "date",
+    "Nº": "number",
+    "N°": "number",
     "DATA E HORA DE EMISSAO": "date",
     "CNPJ DO EMITENTE": "cnpj",
     "CNPJ DO PRESTADOR": "cnpj",
@@ -46,6 +49,7 @@ SECTIONS = {
     "TOMADOR DO SERVICO": "recipient",
     "TOMADOR DE SERVICOS": "recipient",
     "DESTINATARIO / REMETENTE": "recipient",
+    "IDENTIFICACAO DO EMITENTE": "issuer",
     "DADOS DA NFSE": "other",
     "SERVICO PRESTADO": "other",
     "DESCRICAO DO SERVICO PRESTADO": "other",
@@ -89,9 +93,21 @@ def parse_invoice(
     text = [line.strip() for line in lines if line.strip()]
     markers = {normalized(line) for line in text}
     kinds = set()
-    if "DANFE" in markers:
+    if any(
+        marker == "DANFE"
+        or marker.startswith("DANFE ")
+        or "DOCUMENTO AUXILIAR DA NOTA FISCAL ELETRONICA" in marker
+        for marker in markers
+    ):
         kinds.add(DocumentType.NFE)
-    if markers & {"NFS-E", "NFSE - PRESTADOR", "NOTA FISCAL DE SERVICOS ELETRONICA"}:
+    if any(
+        marker in {"NFS-E", "NFSE - PRESTADOR"}
+        or "NOTA FISCAL DE SERVICO ELETRONICA" in marker
+        or "NOTA FISCAL DE SERVICOS ELETRONICA" in marker
+        or "NOTA FISCAL ELETRONICA DE SERVICO" in marker
+        or "NOTA FISCAL ELETRONICA DE SERVICOS" in marker
+        for marker in markers
+    ):
         kinds.add(DocumentType.NFSE)
     if len(kinds) != 1:
         return FiscalExtraction(
@@ -133,9 +149,13 @@ def parse_invoice(
     values: dict[str, str | None] = {}
     flags: list[QualityFlag] = []
     for key, missing in MISSING.items():
-        candidates = observations.get(key, [])
-        values[key] = candidates[0] if len(candidates) == 1 and candidates[0] else None
-        if len(candidates) > 1:
+        candidates = [candidate for candidate in observations.get(key, []) if candidate]
+        unique = tuple(dict.fromkeys(candidates))
+        if key in {"number", "series"} and len(unique) == 1:
+            values[key] = unique[0]
+        else:
+            values[key] = candidates[0] if len(candidates) == 1 else None
+        if len(candidates) > 1 and not (key in {"number", "series"} and len(unique) == 1):
             flags.append(
                 QualityFlag.AMBIGUOUS_AMOUNT if key == "amount" else QualityFlag.AMBIGUOUS_FIELD
             )

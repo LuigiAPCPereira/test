@@ -63,6 +63,11 @@ def test_creates_controlled_workbook_and_hides_technical_columns(tmp_path: Path)
         assert worksheet.max_row == 2
         assert worksheet["A2"].value == "nf.pdf"
         assert worksheet["C2"].value == "004.241.885"
+        assert worksheet["D2"].value == "99"
+        assert worksheet["E2"].value.date() == date(2026, 7, 30)
+        assert worksheet["F2"].value == "EMPRESA EMITENTE LTDA"
+        assert worksheet["G2"].value == "46.395.687/0004-55"
+        assert worksheet["H2"].value == "EMPRESA TOMADORA LTDA"
         assert worksheet["I2"].value == 112000
         assert worksheet["M2"].value == "OK"
         assert worksheet["O2"].value == "a" * 64
