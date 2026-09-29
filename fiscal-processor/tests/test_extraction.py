@@ -154,7 +154,6 @@ def test_parse_guided_ocr_retry_replaces_fiscally_useless_native_layer():
     assert result.status == ProcessingStatus.OK
 
 
-
 def test_parse_guided_ocr_retry_keeps_better_native_result_when_ocr_is_worse():
     pdf = Pdf(["DANFE " + "A" * 50])
     ocr = Ocr(low=True)
