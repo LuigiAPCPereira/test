@@ -131,7 +131,11 @@ def _needs_ocr_retry(result: FiscalExtraction, evidence: DocumentEvidence) -> bo
 
 
 def _extract_all_ocr(
-    path: Path, pdf: PdfReader, ocr: OcrReader, *, dpi: int
+    path: Path,
+    pdf: PdfReader,
+    ocr: OcrReader,
+    *,
+    dpi: int,
 ) -> DocumentEvidence:
     document = pdf.extract_document(path)
     if not document.pages:
