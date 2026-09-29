@@ -5,6 +5,7 @@ import pytest
 from fiscal_processor.adapters.ocr import OcrAdapterError, RapidSmallAdapter
 from fiscal_processor.adapters.ocr.rapid_small import MODELS
 from fiscal_processor.application.extraction import (
+    extract_and_parse,
     extract_evidence,
     native_text_is_useful,
     parse_evidence,
@@ -110,3 +111,45 @@ def test_invalid_dpi_and_empty_document_are_rejected():
         extract_evidence(Path("synthetic.pdf"), Pdf([""]), Ocr(), dpi=True)
     with pytest.raises(ValueError, match="EMPTY_DOCUMENT"):
         extract_evidence(Path("synthetic.pdf"), Pdf([]), Ocr())
+
+
+
+def test_parse_guided_ocr_retry_replaces_fiscally_useless_native_layer():
+    class CompleteOcr(Ocr):
+        def recognize(self, page, page_index):
+            self.calls.append(page_index)
+            spans = (
+                TextSpan("DANFE", 20, 10, 80, 20, page_index),
+                TextSpan("NÚMERO DA NF", 20, 40, 120, 50, page_index),
+                TextSpan("000321", 20, 60, 100, 70, page_index),
+                TextSpan("SÉRIE", 160, 40, 220, 50, page_index),
+                TextSpan("001", 160, 60, 200, 70, page_index),
+                TextSpan("DATA DE EMISSÃO", 20, 90, 140, 100, page_index),
+                TextSpan("29/09/2026", 20, 110, 100, 120, page_index),
+                TextSpan("CNPJ DO EMITENTE", 160, 90, 280, 100, page_index),
+                TextSpan("12.345.678/0001-95", 160, 110, 280, 120, page_index),
+                TextSpan("RAZÃO SOCIAL DO EMITENTE", 20, 140, 180, 150, page_index),
+                TextSpan("EMITENTE SINTÉTICO", 20, 160, 160, 170, page_index),
+                TextSpan("RAZÃO SOCIAL DO DESTINATÁRIO", 20, 190, 220, 200, page_index),
+                TextSpan("DESTINATÁRIO SINTÉTICO", 20, 210, 190, 220, page_index),
+                TextSpan("VALOR TOTAL DA NOTA", 20, 240, 160, 250, page_index),
+                TextSpan("1.234,56", 20, 260, 100, 270, page_index),
+            )
+            return OcrPage(spans)
+
+    # A watermark/text overlay can be long and printable while carrying no fiscal structure.
+    pdf = Pdf(["DOCUMENTO CONFIDENCIAL " * 8])
+    ocr = CompleteOcr()
+    result = extract_and_parse(
+        Path("synthetic.pdf"),
+        pdf,
+        ocr,
+        source_sha256="a" * 64,
+        source_filename="synthetic.pdf",
+    )
+
+    assert pdf.rendered == ocr.calls == [0]
+    assert result.extraction_mode == ExtractionMode.OCR
+    assert result.invoice_number == "000321"
+    assert result.amount is not None
+    assert result.status == ProcessingStatus.OK

@@ -115,3 +115,16 @@ def test_party_scope_never_carries_over_to_another_page():
 def test_invalid_coordinates_are_rejected(coordinates):
     with pytest.raises(ValueError):
         TextSpan("text", *coordinates)
+
+
+
+def test_amount_may_be_in_same_row_to_the_right_of_its_label():
+    result = parse(
+        [
+            box("DANFE", 0, 0),
+            box("VALOR TOTAL DA NOTA", 20, 50),
+            box("1.234,56", 145, 50),
+        ]
+    )
+    assert result.amount == Decimal("1234.56")
+    assert QualityFlag.MISSING_AMOUNT not in result.quality_flags
