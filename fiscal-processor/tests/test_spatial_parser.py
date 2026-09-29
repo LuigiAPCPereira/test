@@ -129,7 +129,6 @@ def test_amount_may_be_in_same_row_to_the_right_of_its_label():
     assert QualityFlag.MISSING_AMOUNT not in result.quality_flags
 
 
-
 def test_standard_danfe_aliases_sections_and_repeated_identifiers():
     result = parse(
         [
