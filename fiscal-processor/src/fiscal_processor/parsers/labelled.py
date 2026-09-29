@@ -2,7 +2,8 @@
 
 Supported: explicit DANFE labels and sectioned NFS-e labels. Layout adapters must
 preserve separate label/value lines and section order; flattened tables are not
-inferred. Duplicate observations are ambiguous even if their values agree.
+inferred. Repeated identical number/series observations are accepted because
+standard DANFE layouts repeat them; other duplicate fields remain ambiguous.
 """
 
 import re
@@ -30,7 +31,7 @@ LABELS = {
     "SERIE": "series",
     "DATA DE EMISSAO": "date",
     "DATA DA EMISSAO": "date",
-    "Nº": "number",
+    "NO": "number",
     "N°": "number",
     "DATA E HORA DE EMISSAO": "date",
     "CNPJ DO EMITENTE": "cnpj",
