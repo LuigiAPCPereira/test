@@ -113,7 +113,6 @@ def test_invalid_dpi_and_empty_document_are_rejected():
         extract_evidence(Path("synthetic.pdf"), Pdf([]), Ocr())
 
 
-
 def test_parse_guided_ocr_retry_replaces_fiscally_useless_native_layer():
     class CompleteOcr(Ocr):
         def recognize(self, page, page_index):
