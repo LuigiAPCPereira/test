@@ -169,12 +169,22 @@ falha parcial. Isto valida execução automatizada da interface em ambos os SOs,
 mas não substitui inspeção visual humana de composição, escala, conteúdo longo
 e acessibilidade. FP-008 permanece parcialmente validada até essa revisão.
 
+## FP-009 — pacote Windows portátil
+Build reproduzível em `packaging/build_windows.ps1` com PyInstaller 6.22.3
+em modo onedir. O job Windows inclui Python/Tk/PDFium/RapidOCR/ONNX e os
+três modelos OCR small. `packaging/smoke_windows.ps1` extrai o ZIP, reduz
+PATH aos diretórios do Windows, confirma que `python` não é descoberto e
+executa `FiscalProcessor.exe --smoke`. O smoke inicializa Tk e executa OCR
+sobre uma imagem sintética branca, sem documento do usuário.
+
+Run 36575272863 na revisão `cc28a2c9604fcce05415b038beae8fa599e024ab`:
+gates Linux/Windows PASS e job Portable Windows x64 PASS. Artefato
+`FiscalProcessor-windows-x64.zip`, ID 11037431137, 162040569 bytes,
+SHA-256 `10892dd393e1d80f277b410f4fea15bc74159744d76c6ac1fb81eac80ffa916d`,
+expira em 2026-10-02. A CI comprova execução sem Python descobrível no PATH,
+não uma máquina fisicamente sem Python nem uma conta comprovadamente sem
+privilégios administrativos. O usuário informou que o PC corporativo real
+não possui Python; esse host será a prova externa.
+
 ## Próxima ação
-FP-008: executar o harness em display real para inspeção humana:
-`python tools/visual_qa.py partial` e
-`python tools/visual_qa.py long --scale 2.0 --geometry 760x540`; revisar
-composição, escala, nomes longos, scroll, foco/teclado e estados. A suíte Tk
-automatizada já passou em Ubuntu e Windows no run 36566933575. Após evidência
-visual/acessível, encerrar FP-008 e iniciar FP-009 pacote Windows portátil.
-CLI OCR end-to-end continua pendente de ambiente com modelos. Smoke corporativo
-somente após pacote sem Python.
+FP-008/FP-009: no PC corporativo sem Python, extrair o pacote Windows e abrir `FiscalProcessor.exe` primeiro apenas para validar inicialização e inspeção visual. Não usar documento empresarial antes do gate de privacidade/egress de FP-010. Depois registrar o resultado real do host, concluir o gate visual aplicável de FP-008 e avançar FP-010; processamento de documentos autorizados permanece FP-011.
