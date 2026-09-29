@@ -14,6 +14,43 @@ from fiscal_processor.presentation.state import row_values, summarize
 from fiscal_processor.presentation.worker import WorkerEvent, run_batch
 
 
+def bundled_models_path() -> Path | None:
+    """Resolve models shipped inside a frozen desktop bundle."""
+    bundle_root = getattr(sys, "_MEIPASS", None)
+    if isinstance(bundle_root, str):
+        return Path(bundle_root) / "models"
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).parent / "models"
+    return None
+
+
+def run_packaged_smoke(models: Path | None) -> None:
+    """Exercise Tk plus the bundled OCR runtime/models without processing user files."""
+    if models is None:
+        raise RuntimeError("PACKAGED_MODELS_MISSING")
+
+    from fiscal_processor.adapters.ocr import RapidSmallAdapter
+    from fiscal_processor.domain.text import RenderedPage
+
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        Desktop(root, models)
+        root.update_idletasks()
+        blank = RenderedPage(
+            page_index=0,
+            width=64,
+            height=64,
+            stride=64 * 3,
+            mode="RGB",
+            pixels=b"\\xff" * (64 * 64 * 3),
+            dpi=72,
+        )
+        RapidSmallAdapter(models).recognize(blank, 0)
+    finally:
+        root.destroy()
+
+
 class Desktop:
     def __init__(self, root: tk.Tk, models: Path | None = None) -> None:
         self.root = root
@@ -260,10 +297,12 @@ class Desktop:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Fiscal Processor desktop")
     parser.add_argument("--models", type=Path)
+    parser.add_argument("--smoke", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
-    models = args.models
-    if models is None and getattr(sys, "frozen", False):
-        models = Path(sys.executable).parent / "models"
+    models = args.models or bundled_models_path()
+    if args.smoke:
+        run_packaged_smoke(models)
+        return
     root = tk.Tk()
     Desktop(root, models)
     root.mainloop()
