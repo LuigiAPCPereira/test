@@ -180,3 +180,21 @@ FP-008 permanece parcial até essa evidência existir.
 Correção associada: término sem nenhuma linha agora mostra
 `Não há itens concluídos para detalhar.`, em vez de orientar a selecionar um
 item inexistente. O teste Tk de pasta vazia protege esse comportamento.
+
+
+## Gate gráfico executado em CI — 2026-09-29
+Após o bloqueio externo de cobrança deixar de impedir os jobs, o workflow foi
+reexecutado com o gate de display obrigatório. No run `36566933575`, revisão
+`638bae3f03f804e047a21a3794e95325fff9ff37`, Ubuntu 24.04 e Windows Server
+2022 concluíram com sucesso: 133 testes PASS e 1 skip em cada sistema. O skip
+foi exclusivamente o smoke OCR, pois os modelos locais não são provisionados
+na CI. Os cinco testes reais de widgets Tk executaram — não foram ignorados —
+e passaram nos dois ambientes. Ruff check, Ruff format --check, mypy,
+compileall e build wheel também passaram.
+
+Depois dos registros documentais do resultado, o run `36573200114` revalidou
+o HEAD `a5835e62d07a6f93eb0353e3d9d0e14bed3c6ad7` em Ubuntu e Windows, incluindo
+o mesmo gate Tk. Isso comprova execução automatizada cross-platform da interface,
+mas não substitui inspeção visual humana de contraste, escala 200%, recorte,
+conteúdo longo, leitor de tela ou qualidade de composição. O harness
+`tools/visual_qa.py` continua sendo a próxima evidência para encerrar FP-008.
