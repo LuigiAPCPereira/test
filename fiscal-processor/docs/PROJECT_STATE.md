@@ -208,5 +208,50 @@ do hash; binário sem assinatura pode exigir "Executar assim mesmo", e política
 empresarial pode bloquear a continuação. Não há decisão de comprar certificado
 ou publicar na Store nesta evidência.
 
+
+## Evidência corporativa — dois layouts fiscais reais
+O usuário adiantou um smoke com dois PDFs autorizados no PC corporativo. Nenhum
+PDF, nome de arquivo, valor, CNPJ ou conteúdo fiscal foi enviado ao repositório.
+A evidência preservada é somente estrutural:
+
+- caso A: PDF com conteúdo visual prejudicado por marca d'água/camada de texto;
+  o usuário relata que leitura raster/OCR é a via mais confiável. A execução
+  anterior terminou em revisão/layout não suportado, sem extração útil;
+- caso B: DANFE/NF-e foi reconhecido como tipo NF-e, porém os campos visíveis do
+  workbook não foram preenchidos corretamente. Na foto, `MISSING_AMOUNT` estava
+  visível como motivo de revisão; a captura não permite reconstruir com segurança
+  o objeto intermediário nem atribuir a falha ao adapter Excel.
+
+A investigação encontrou dois mecanismos generalizáveis: a heurística de
+"texto nativo útil" podia impedir OCR mesmo quando o parse fiscal era insuficiente;
+e o parser espacial aceitava apenas valor abaixo/alinhado ao rótulo, enquanto o
+DANFE oficial também usa rótulos/valores e seções que exigem associação horizontal
+controlada. O MOC 7.0/Anexo DANFE oficial confirma, entre outros, DANFE, Nº,
+SÉRIE, identificação do emitente, DESTINATÁRIO / REMETENTE, DATA DA EMISSÃO e
+VALOR TOTAL DA NOTA.
+
+Correção candidata em `74047e2a87d3bb6d72e4cbf0799f3e3be6cbf460`:
+parse nativo primeiro; se terminar em REVIEW por layout não suportado/campo
+obrigatório ausente, tentativa OCR local de todas as páginas; a alternativa OCR
+só substitui a primeira evidência se reconhecer melhor o documento e preencher
+mais campos verificados. O retry é local e, se indisponível/falhar, preserva o
+resultado REVIEW nativo. O parser ganhou aliases/seção do DANFE oficial, aceita
+Nº/Série repetidos quando idênticos e associação horizontal somente para valores
+cuja sintaxe corresponde ao campo (dinheiro/data/CNPJ/identificador).
+
+O teste do adapter Excel foi ampliado para verificar também Série, Data, Emitente,
+CNPJ e Destinatário, além de número/valor/status; passou. Isso reduz a hipótese
+de perda genérica C-H na persistência, mas não explica retrospectivamente a
+captura do caso B. Só o reteste do mesmo documento no candidato novo pode fechar
+essa distinção.
+
+Run 36584471585 no commit `74047e2a`: Ubuntu e Windows 137 PASS + 1 skip cada
+(skip exclusivo do OCR real sem modelos provisionados no job base); Ruff,
+format, mypy, compileall e wheel PASS; pacote Windows onedir PASS; smoke do ZIP
+extraído com Python ausente do PATH PASS. Artefato ID 11041063334,
+162043384 bytes, SHA-256
+`76bef9b697c9b486e8444e151649839f77d4def499b8779fd49b1f191e39ad5f`,
+expira em 2026-10-02.
+
 ## Próxima ação
-FP-010: manter o pacote atual sem documentos empresariais e avançar os gates de distribuição/privacidade: notices/licenças do bundle, teste de execução com egress bloqueado e baseline de tamanho/startup. Em paralelo, FP-008 ainda requer estados visuais adicionais/escala antes de ser encerrada. FP-011 com documentos autorizados permanece posterior a FP-010.
+Retestar o artefato do commit `74047e2a` no mesmo PC corporativo: fechar o Excel, usar `Reprocessar já registradas` para os mesmos dois PDFs autorizados e comparar apenas quais campos foram preenchidos/flags retornadas. Não versionar nem enviar os documentos. O resultado decide se FP-005 exige novo adapter de layout ou se o fallback OCR/DANFE já resolve. FP-010 de egress/licenças/performance continua aberto e deve ser fechado antes de considerar FP-011 concluído.

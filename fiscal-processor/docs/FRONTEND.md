@@ -215,3 +215,11 @@ Antes da janela, o SmartScreen exibiu aviso de aplicativo/editor não reconhecid
 O usuário escolheu executar mesmo assim. Esse aviso é um gate de distribuição/
 reputação separado da qualidade visual e deve ser tratado em FP-010; não registrar
 essa decisão do usuário como prova de instalação nominal sem alertas.
+
+## Evidência corporativa — estado Empty
+No PC corporativo real, o usuário selecionou uma pasta sem PDFs e executou o
+fluxo. A janela mostrou `Nenhum PDF nesta pasta. Escolha outra pasta para começar.`
+e `Não há itens concluídos para detalhar.`, com tabela vazia e sem recorte
+evidente. A evidência visual confirma o estado Empty no ambiente-alvo; não
+substitui os gates ainda abertos de escala 200%, foco/leitor de tela e conteúdo
+longo.
