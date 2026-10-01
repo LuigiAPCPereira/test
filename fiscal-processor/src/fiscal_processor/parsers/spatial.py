@@ -174,7 +174,7 @@ def parse_spans(
         else:
             below = [
                 span.text.strip()
-                for span, name in labelled
+                for span, name, _ in labelled
                 if span.page == anchor.page
                 and name not in reserved
                 and 0 < span.top - anchor.bottom <= 22
@@ -189,7 +189,7 @@ def parse_spans(
             ]
             same_row = [
                 span.text.strip()
-                for span, name in labelled
+                for span, name, _ in labelled
                 if span.page == anchor.page
                 and name not in reserved
                 and abs(span.top - anchor.top) <= 4
