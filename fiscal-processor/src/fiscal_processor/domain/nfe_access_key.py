@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from .fields import CandidateSource, FieldCandidate, FiscalField
 from .validation import DomainValidationError
 
 
@@ -55,4 +56,30 @@ class NfeAccessKey:
             emission_type=digits[34:35],
             numeric_code=digits[35:43],
             check_digit=digits[43],
+        )
+
+    def field_candidates(self, *, page: int | None = None) -> tuple[FieldCandidate, ...]:
+        """Expose validated structural values without resolving them into an invoice."""
+        return (
+            FieldCandidate(
+                field=FiscalField.INVOICE_NUMBER,
+                raw_value=self.invoice_number,
+                normalized_value=self.invoice_number,
+                source=CandidateSource.NFE_ACCESS_KEY,
+                page=page,
+            ),
+            FieldCandidate(
+                field=FiscalField.SERIES,
+                raw_value=self.series,
+                normalized_value=self.series,
+                source=CandidateSource.NFE_ACCESS_KEY,
+                page=page,
+            ),
+            FieldCandidate(
+                field=FiscalField.ISSUER_CNPJ,
+                raw_value=self.issuer_cnpj,
+                normalized_value=self.issuer_cnpj,
+                source=CandidateSource.NFE_ACCESS_KEY,
+                page=page,
+            ),
         )

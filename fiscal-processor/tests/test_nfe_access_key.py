@@ -1,7 +1,9 @@
 import pytest
 
 from fiscal_processor.domain import (
+    CandidateSource,
     DomainValidationError,
+    FiscalField,
     NfeAccessKey,
     normalize_nfe_access_key,
 )
@@ -46,3 +48,17 @@ def test_rejects_invalid_check_digit() -> None:
 def test_rejects_malformed_access_key(value: str) -> None:
     with pytest.raises(DomainValidationError):
         NfeAccessKey.parse(value)
+
+
+
+def test_validated_access_key_exposes_structural_field_candidates() -> None:
+    candidates = NfeAccessKey.parse(SYNTHETIC_KEY).field_candidates(page=0)
+
+    assert [(candidate.field, candidate.normalized_value) for candidate in candidates] == [
+        (FiscalField.INVOICE_NUMBER, "004241885"),
+        (FiscalField.SERIES, "099"),
+        (FiscalField.ISSUER_CNPJ, "46395687000455"),
+    ]
+    assert all(candidate.source == CandidateSource.NFE_ACCESS_KEY for candidate in candidates)
+    assert all(candidate.page == 0 for candidate in candidates)
+    assert all(candidate.ocr_score is None for candidate in candidates)
