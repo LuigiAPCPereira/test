@@ -2,6 +2,7 @@
 
 from .fields import CandidateSource, FieldCandidate, FiscalField
 from .invoice import FiscalExtraction, ManualFields
+from .resolution import FieldResolution, ResolutionStatus, resolve_field_candidates
 from .nfe_access_key import NfeAccessKey, normalize_nfe_access_key
 from .status import DocumentType, ExtractionMode, ProcessingStatus, QualityFlag
 from .validation import (
@@ -20,15 +21,18 @@ __all__ = [
     "ExtractionMode",
     "FieldCandidate",
     "FiscalField",
+    "FieldResolution",
     "FiscalExtraction",
     "ManualFields",
     "NfeAccessKey",
     "ProcessingStatus",
     "QualityFlag",
+    "ResolutionStatus",
     "format_cnpj",
     "normalize_cnpj",
     "parse_br_date",
     "parse_brl_money",
+    "resolve_field_candidates",
     "normalize_nfe_access_key",
     "validate_cnpj",
 ]
