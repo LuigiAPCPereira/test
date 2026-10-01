@@ -126,10 +126,7 @@ def parse_spans(
     source_filename: str,
     extraction_mode: ExtractionMode = ExtractionMode.NATIVE_TEXT,
 ) -> FiscalExtraction:
-    labelled = [
-        (span, *_label_key_and_inline(span.text))
-        for span in spans
-    ]
+    labelled = [(span, *_label_key_and_inline(span.text)) for span in spans]
     lines: list[str] = []
     for span, key, _inline in labelled:
         whole = normalized(span.text)
