@@ -3,7 +3,6 @@
 from collections.abc import Iterable, Sequence
 
 from fiscal_processor.domain import (
-    CandidateSource,
     DomainValidationError,
     FieldCandidate,
     FieldResolution,

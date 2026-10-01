@@ -2,8 +2,8 @@
 
 from .fields import CandidateSource, FieldCandidate, FiscalField
 from .invoice import FiscalExtraction, ManualFields
-from .resolution import FieldResolution, ResolutionStatus, resolve_field_candidates
 from .nfe_access_key import NfeAccessKey, normalize_nfe_access_key
+from .resolution import FieldResolution, ResolutionStatus, resolve_field_candidates
 from .status import DocumentType, ExtractionMode, ProcessingStatus, QualityFlag
 from .validation import (
     DomainValidationError,

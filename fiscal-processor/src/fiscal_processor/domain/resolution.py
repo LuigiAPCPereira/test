@@ -1,8 +1,8 @@
 """Deterministic resolution of structured fiscal field candidates."""
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Iterable
 
 from .fields import CandidateSource, FieldCandidate, FiscalField
 
