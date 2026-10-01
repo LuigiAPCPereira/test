@@ -78,14 +78,12 @@ def _typed_inline(field: str, value: str) -> str | None:
 
 
 def _label_key_and_inline(text: str) -> tuple[str, str]:
-    label, separator, inline = text.partition(":")
-    if separator:
-        return normalized(label), inline.strip()
-
     whole = normalized(text)
     if whole in _PREFIX_KEYS or whole in SECTIONS or whole in MARKERS:
         return whole, ""
 
+    # Recognize known label prefixes before treating ':' as a separator.
+    # Datetimes such as 11:34:29 otherwise look like "label: value".
     for key in _PREFIX_KEYS:
         if not whole.startswith(key + " "):
             continue
@@ -103,6 +101,10 @@ def _label_key_and_inline(text: str) -> tuple[str, str]:
             value = _original_suffix(text, key)
             if value:
                 return key, value
+
+    label, separator, inline = text.partition(":")
+    if separator:
+        return normalized(label), inline.strip()
     return whole, ""
 
 
