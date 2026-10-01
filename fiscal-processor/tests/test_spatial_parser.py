@@ -162,3 +162,55 @@ def test_standard_danfe_aliases_sections_and_repeated_identifiers():
     assert result.issuer_cnpj == "12345678000195"
     assert result.recipient_name == "DESTINATÁRIO SINTÉTICO SA"
     assert result.amount == Decimal("1234.56")
+
+
+
+def test_2026_national_nfse_labels_and_inline_values():
+    result = parse(
+        [
+            box("DANFSe", 0, 0),
+            box("NÚMERO DA NFS-e 000987", 20, 40),
+            box("SÉRIE DA DPS A1", 220, 40),
+            box("DATA E HORA DA EMISSÃO DA NFS-E 28/09/2026 11:34:29", 20, 70),
+            box("PRESTADOR / FORNECEDOR", 20, 110),
+            box("CNPJ / CPF / NIF 12.345.678/0001-95", 20, 135),
+            box("NOME / NOME EMPRESARIAL OFICINA SINTÉTICA LTDA", 20, 160),
+            box("TOMADOR / ADQUIRENTE", 20, 200),
+            box("NOME / NOME EMPRESARIAL TRANSPORTES FICTÍCIOS SA", 20, 225),
+            box("VALOR DA OPERAÇÃO / SERVIÇO R$ 1.234,56", 20, 270),
+        ]
+    )
+    assert result.document_type == DocumentType.NFSE
+    assert result.invoice_number == "000987"
+    assert result.series == "A1"
+    assert result.issue_date.isoformat() == "2026-09-28"
+    assert result.issuer_name == "OFICINA SINTÉTICA LTDA"
+    assert result.issuer_cnpj == "12345678000195"
+    assert result.recipient_name == "TRANSPORTES FICTÍCIOS SA"
+    assert result.amount == Decimal("1234.56")
+    assert result.status == ProcessingStatus.OK
+
+
+def test_danfe_compound_ocr_lines_keep_typed_values_and_party_scope():
+    result = parse(
+        [
+            box("DANFE - DOCUMENTO AUXILIAR DA NOTA FISCAL ELETRÔNICA", 20, 20),
+            box("Nº 004241885 SÉRIE 99", 320, 20),
+            box("IDENTIFICAÇÃO DO EMITENTE", 20, 60),
+            box("NOME / RAZÃO SOCIAL EMITENTE SINTÉTICO LTDA", 20, 85),
+            box("CNPJ 12.345.678/0001-95", 20, 110),
+            box("DESTINATÁRIO / REMETENTE", 20, 150),
+            box("NOME / RAZÃO SOCIAL DESTINATÁRIO SINTÉTICO SA", 20, 175),
+            box("DATA DA EMISSÃO 29/09/2026", 320, 175),
+            box("VALOR TOTAL DA NOTA R$ 1.234,56", 20, 220),
+        ]
+    )
+    assert result.document_type == DocumentType.NFE
+    assert result.invoice_number == "004241885"
+    assert result.series == "99"
+    assert result.issue_date.isoformat() == "2026-09-29"
+    assert result.issuer_name == "EMITENTE SINTÉTICO LTDA"
+    assert result.issuer_cnpj == "12345678000195"
+    assert result.recipient_name == "DESTINATÁRIO SINTÉTICO SA"
+    assert result.amount == Decimal("1234.56")
+    assert result.status == ProcessingStatus.OK

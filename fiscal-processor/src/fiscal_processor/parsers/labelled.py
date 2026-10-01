@@ -26,14 +26,19 @@ from fiscal_processor.domain import (
 LABELS = {
     "NUMERO DA NF": "number",
     "NUMERO DA NOTA": "number",
+    "NUMERO DA NFS-E": "number",
+    "NUMERO DA NFSE": "number",
     "NUMERO / SERIE": "combined",
     "NUMERO/SERIE": "combined",
     "SERIE": "series",
+    "SERIE DA DPS": "series",
     "DATA DE EMISSAO": "date",
     "DATA DA EMISSAO": "date",
     "NO": "number",
     "N°": "number",
     "DATA E HORA DE EMISSAO": "date",
+    "DATA E HORA DA EMISSAO DA NFS-E": "date",
+    "DATA E HORA DA EMISSAO DA NFSE": "date",
     "CNPJ DO EMITENTE": "cnpj",
     "CNPJ DO PRESTADOR": "cnpj",
     "RAZAO SOCIAL DO EMITENTE": "issuer",
@@ -41,15 +46,22 @@ LABELS = {
     "RAZAO SOCIAL DO DESTINATARIO": "recipient",
     "RAZAO SOCIAL DO TOMADOR": "recipient",
     "VALOR TOTAL DA NOTA": "amount",
+    "VALOR DA OPERACAO / SERVICO": "amount",
+    "VALOR DA OPERACAO/SERVICO": "amount",
     "VALOR TOTAL DA NFSE (R$)": "amount",
     "VALOR TOTAL DOS SERVICOS": "amount",
 }
 SECTIONS = {
     "EMITENTE PRESTADOR DO SERVICO": "issuer",
     "PRESTADOR DE SERVICOS": "issuer",
+    "PRESTADOR / FORNECEDOR": "issuer",
+    "PRESTADOR/FORNECEDOR": "issuer",
     "TOMADOR DO SERVICO": "recipient",
     "TOMADOR DE SERVICOS": "recipient",
+    "TOMADOR / ADQUIRENTE": "recipient",
+    "TOMADOR/ADQUIRENTE": "recipient",
     "DESTINATARIO / REMETENTE": "recipient",
+    "DESTINATARIO DA OPERACAO": "recipient",
     "IDENTIFICACAO DO EMITENTE": "issuer",
     "DADOS DA NFSE": "other",
     "SERVICO PRESTADO": "other",
@@ -61,7 +73,7 @@ SECTIONS = {
     "INFORMACOES COMPLEMENTARES": "other",
 }
 NAME_LABELS = {"NOME / NOME EMPRESARIAL", "RAZAO SOCIAL", "NOME / RAZAO SOCIAL"}
-CNPJ_LABELS = {"CPF / CNPJ / NIF", "CNPJ", "CNPJ / CPF"}
+CNPJ_LABELS = {"CPF / CNPJ / NIF", "CNPJ / CPF / NIF", "CNPJ", "CNPJ / CPF"}
 MISSING = {
     "number": QualityFlag.MISSING_INVOICE_NUMBER,
     "series": QualityFlag.MISSING_SERIES,
@@ -102,7 +114,8 @@ def parse_invoice(
     ):
         kinds.add(DocumentType.NFE)
     if any(
-        marker in {"NFS-E", "NFSE - PRESTADOR"}
+        marker in {"NFS-E", "DANFSE", "NFSE - PRESTADOR"}
+        or "DOCUMENTO AUXILIAR DA NFS-E" in marker
         or "NOTA FISCAL DE SERVICO ELETRONICA" in marker
         or "NOTA FISCAL DE SERVICOS ELETRONICA" in marker
         or "NOTA FISCAL ELETRONICA DE SERVICO" in marker

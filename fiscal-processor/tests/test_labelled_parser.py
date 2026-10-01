@@ -132,3 +132,30 @@ def test_real_pdfium_text_to_parser(tmp_path):
     assert result.status == ProcessingStatus.OK
     assert result.issuer_cnpj == "12345678000195"
     assert result.amount == Decimal("1234.56")
+
+
+
+def test_national_nfse_2026_labels_are_supported():
+    result = parse(
+        [
+            "NFS-e",
+            "Número da NFS-e: 000987",
+            "Série da DPS: A1",
+            "Data e Hora da Emissão da NFS-e: 28/09/2026 11:34:29",
+            "PRESTADOR / FORNECEDOR",
+            "CNPJ / CPF / NIF: 12.345.678/0001-95",
+            "Nome / Nome Empresarial: OFICINA SINTÉTICA LTDA",
+            "TOMADOR / ADQUIRENTE",
+            "Nome / Nome Empresarial: TRANSPORTES FICTÍCIOS SA",
+            "Valor da Operação / Serviço: 1.234,56",
+        ]
+    )
+    assert result.document_type == DocumentType.NFSE
+    assert result.invoice_number == "000987"
+    assert result.series == "A1"
+    assert result.issue_date.isoformat() == "2026-09-28"
+    assert result.issuer_name == "OFICINA SINTÉTICA LTDA"
+    assert result.issuer_cnpj == "12345678000195"
+    assert result.recipient_name == "TRANSPORTES FICTÍCIOS SA"
+    assert result.amount == Decimal("1234.56")
+    assert result.status == ProcessingStatus.OK

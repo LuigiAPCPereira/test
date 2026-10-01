@@ -23,7 +23,13 @@ from .labelled import (
     parse_invoice,
 )
 
-MARKERS = {"DANFE", "NFS-E", "NFSE - PRESTADOR", "NOTA FISCAL DE SERVICOS ELETRONICA"}
+MARKERS = {
+    "DANFE",
+    "DANFSE",
+    "NFS-E",
+    "NFSE - PRESTADOR",
+    "NOTA FISCAL DE SERVICOS ELETRONICA",
+}
 CANONICAL = {
     "number": "NUMERO DA NF",
     "combined": "NUMERO / SERIE",
@@ -34,6 +40,70 @@ CANONICAL = {
     "cnpj": "CNPJ DO EMITENTE",
     "amount": "VALOR TOTAL DA NOTA",
 }
+
+_CNPJ = re.compile(r"(?<!\d)(?:\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}|\d{14})(?!\d)")
+_NUMBER_SERIES = re.compile(
+    r"(?:^|\s)(?:NO|N°|NUMERO(?: DA (?:NF|NOTA))?)\s*[:\-]?\s*"
+    r"([0-9][A-Z0-9.\-]*)\s+SERIE\s*[:\-]?\s*([A-Z0-9.\-]+)(?:\s|$)"
+)
+_PREFIX_KEYS = tuple(
+    sorted(
+        set(LABELS) | NAME_LABELS | CNPJ_LABELS,
+        key=len,
+        reverse=True,
+    )
+)
+
+
+def _original_suffix(text: str, key: str) -> str:
+    words = text.split()
+    return " ".join(words[len(key.split()) :]).strip(" :-")
+
+
+def _typed_inline(field: str, value: str) -> str | None:
+    if field == "amount":
+        match = MONEY.search(value)
+        return match.group(0) if match is not None else None
+    if field == "date":
+        match = DATE.search(value)
+        return match.group(0) if match is not None else None
+    if field == "cnpj":
+        match = _CNPJ.search(value)
+        return match.group(0) if match is not None else None
+    if field in {"number", "series"} and re.fullmatch(r"[A-Z0-9.\-]+", value):
+        return value
+    if field == "combined" and re.fullmatch(r"[A-Z0-9.\-]+\s*/\s*[A-Z0-9.\-]+", value):
+        return value
+    return None
+
+
+def _label_key_and_inline(text: str) -> tuple[str, str]:
+    label, separator, inline = text.partition(":")
+    if separator:
+        return normalized(label), inline.strip()
+
+    whole = normalized(text)
+    if whole in _PREFIX_KEYS or whole in SECTIONS or whole in MARKERS:
+        return whole, ""
+
+    for key in _PREFIX_KEYS:
+        if not whole.startswith(key + " "):
+            continue
+        remainder = whole[len(key) :].strip()
+        field = LABELS.get(key)
+        if field is not None:
+            value = _typed_inline(field, remainder)
+            if value is not None:
+                return key, value
+        if key in CNPJ_LABELS:
+            value = _typed_inline("cnpj", remainder)
+            if value is not None:
+                return key, value
+        if key in NAME_LABELS:
+            value = _original_suffix(text, key)
+            if value:
+                return key, value
+    return whole, ""
 
 
 def _same_row_value(field: str, value: str) -> bool:
@@ -56,28 +126,37 @@ def parse_spans(
     source_filename: str,
     extraction_mode: ExtractionMode = ExtractionMode.NATIVE_TEXT,
 ) -> FiscalExtraction:
-    labelled = [(span, normalized(span.text.partition(":")[0])) for span in spans]
+    labelled = [
+        (span, *_label_key_and_inline(span.text))
+        for span in spans
+    ]
     lines: list[str] = []
-    for span, key in labelled:
+    for span, key, _inline in labelled:
         whole = normalized(span.text)
+        pair = _NUMBER_SERIES.search(whole)
+        if pair is not None:
+            lines.append(f"NUMERO DA NF: {pair.group(1)}")
+            lines.append(f"SERIE: {pair.group(2)}")
         if key in MARKERS:
             lines.append(span.text)
         elif "DANFE" in whole or "DOCUMENTO AUXILIAR DA NOTA FISCAL ELETRONICA" in whole:
             lines.append("DANFE")
         elif (
-            "NOTA FISCAL DE SERVICO ELETRONICA" in whole
+            "DANFSE" in whole
+            or "DOCUMENTO AUXILIAR DA NFS-E" in whole
+            or "NOTA FISCAL DE SERVICO ELETRONICA" in whole
             or "NOTA FISCAL DE SERVICOS ELETRONICA" in whole
             or "NOTA FISCAL ELETRONICA DE SERVICO" in whole
             or "NOTA FISCAL ELETRONICA DE SERVICOS" in whole
         ):
             lines.append("NFS-e")
     reserved = set(LABELS) | NAME_LABELS | CNPJ_LABELS | set(SECTIONS) | MARKERS
-    for anchor, key in labelled:
+    for anchor, key, inline_value in labelled:
         field = LABELS.get(key)
         if key in NAME_LABELS | CNPJ_LABELS:
             headers = [
                 (span, name)
-                for span, name in labelled
+                for span, name, _ in labelled
                 if name in SECTIONS
                 and span.page == anchor.page
                 and span.bottom <= anchor.top
@@ -93,9 +172,8 @@ def parse_spans(
                     field = "cnpj"
         if field is None:
             continue
-        inline = anchor.text.partition(":")[2].strip()
-        if inline:
-            candidates = [inline]
+        if inline_value:
+            candidates = [inline_value]
         else:
             below = [
                 span.text.strip()
@@ -109,7 +187,7 @@ def parse_spans(
                     h.page == anchor.page
                     and hkey in SECTIONS
                     and anchor.bottom <= h.top <= span.top
-                    for h, hkey in labelled
+                    for h, hkey, _ in labelled
                 )
             ]
             same_row = [
