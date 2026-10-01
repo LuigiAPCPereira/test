@@ -50,7 +50,6 @@ def test_rejects_malformed_access_key(value: str) -> None:
         NfeAccessKey.parse(value)
 
 
-
 def test_validated_access_key_exposes_structural_field_candidates() -> None:
     candidates = NfeAccessKey.parse(SYNTHETIC_KEY).field_candidates(page=0)
 
