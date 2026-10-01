@@ -164,7 +164,6 @@ def test_standard_danfe_aliases_sections_and_repeated_identifiers():
     assert result.amount == Decimal("1234.56")
 
 
-
 def test_2026_national_nfse_labels_and_inline_values():
     result = parse(
         [
