@@ -134,7 +134,6 @@ def test_real_pdfium_text_to_parser(tmp_path):
     assert result.amount == Decimal("1234.56")
 
 
-
 def test_national_nfse_2026_labels_are_supported():
     result = parse(
         [
