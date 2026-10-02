@@ -45,9 +45,8 @@ def test_rejects_unlabelled_or_invalid_44_digit_sequences() -> None:
 
 def test_key_and_equivalent_visual_series_resolve_as_agreement() -> None:
     key_span = box(
-        "CHAVE DE ACESSO " + " ".join(
-            SYNTHETIC_KEY[index : index + 4] for index in range(0, 44, 4)
-        ),
+        "CHAVE DE ACESSO "
+        + " ".join(SYNTHETIC_KEY[index : index + 4] for index in range(0, 44, 4)),
         20,
         40,
         width=420,
@@ -71,9 +70,8 @@ def test_key_and_equivalent_visual_series_resolve_as_agreement() -> None:
 
 def test_key_and_different_visual_number_stay_conflict() -> None:
     key_span = box(
-        "CHAVE DE ACESSO " + " ".join(
-            SYNTHETIC_KEY[index : index + 4] for index in range(0, 44, 4)
-        ),
+        "CHAVE DE ACESSO "
+        + " ".join(SYNTHETIC_KEY[index : index + 4] for index in range(0, 44, 4)),
         20,
         40,
         width=420,

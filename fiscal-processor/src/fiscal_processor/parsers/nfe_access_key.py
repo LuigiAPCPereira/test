@@ -62,14 +62,10 @@ def find_nfe_access_key_candidates(spans: Sequence[TextSpan]) -> tuple[FieldCand
                 for span in spans
                 if span.page == label.page
                 and (
-                    (
-                        label.bottom - 2 <= span.top <= label.bottom + 45
-                        and span is not label
-                    )
-                    or (
-                        abs(span.top - label.top) <= 3
-                        and span.left >= label.right - 2
-                    )
+                    label.bottom - 2 <= span.top <= label.bottom + 45
+                    and span is not label
+                    or abs(span.top - label.top) <= 3
+                    and span.left >= label.right - 2
                 )
                 and _numeric_fragment(span.text) is not None
             ]
