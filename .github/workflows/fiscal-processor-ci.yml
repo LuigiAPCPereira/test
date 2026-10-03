@@ -1,0 +1,96 @@
+name: Fiscal Processor CI
+
+on:
+  pull_request:
+    paths:
+      - 'fiscal-processor/**'
+      - '.github/workflows/fiscal-processor-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'fiscal-processor/**'
+      - '.github/workflows/fiscal-processor-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fiscal-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Python 3.12 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    defaults:
+      run:
+        working-directory: fiscal-processor
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install core and development dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Lint
+        run: python -m ruff check .
+      - name: Formatting
+        run: python -m ruff format --check .
+      - name: Types
+        run: python -m mypy src
+      - name: Install virtual display (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb xauth
+      - name: Synthetic tests with required Tk display (Linux)
+        if: runner.os == 'Linux'
+        env:
+          FISCAL_REQUIRE_DISPLAY: '1'
+        run: xvfb-run -a python -m pytest -ra
+      - name: Synthetic tests with required Tk display (Windows)
+        if: runner.os == 'Windows'
+        env:
+          FISCAL_REQUIRE_DISPLAY: '1'
+        run: python -m pytest -ra
+      - name: Compile source
+        run: python -m compileall -q src benchmarks tests
+      - name: Build Python wheel (not portable Windows application)
+        run: python -m pip wheel . --no-deps --wheel-dir dist
+
+  package-windows:
+    name: Portable Windows x64
+    needs: validate
+    runs-on: windows-2022
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: fiscal-processor
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install bundle dependencies
+        run: python -m pip install -e ".[ocr,bundle]"
+      - name: Build portable onedir
+        shell: pwsh
+        run: ./packaging/build_windows.ps1
+      - name: Smoke extracted bundle without Python on PATH
+        shell: pwsh
+        run: ./packaging/smoke_windows.ps1
+      - name: Upload portable ZIP
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          path: fiscal-processor/dist/FiscalProcessor-windows-x64.zip
+          archive: false
+          if-no-files-found: error
+          retention-days: 3

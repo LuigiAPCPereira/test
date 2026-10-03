@@ -1,0 +1,215 @@
+from decimal import Decimal
+
+import pytest
+
+from benchmarks.spatial_corpus import cases, write_pdf
+from fiscal_processor.adapters.pdf import PdfiumAdapter
+from fiscal_processor.domain import DocumentType, ProcessingStatus, QualityFlag
+from fiscal_processor.domain.text import TextSpan
+from fiscal_processor.parsers import parse_spans
+
+
+def parse(spans):
+    return parse_spans(spans, source_sha256="a" * 64, source_filename="synthetic.pdf")
+
+
+def box(text, x, y, page=0):
+    return TextSpan(text, x, y, x + 100, y + 10, page)
+
+
+@pytest.mark.parametrize("case", cases(), ids=lambda c: c.name)
+def test_real_pdf_native_boxes_reach_production_parser(tmp_path, case):
+    path = tmp_path / "synthetic.pdf"
+    write_pdf(path, case)
+    result = parse(PdfiumAdapter().extract_spans(path))
+    assert result.parser_id == "spatial-labelled-v1"
+    if case.expected["type"] is None:
+        assert result.document_type == DocumentType.UNKNOWN
+        assert result.amount is None
+        return
+    assert result.invoice_number == case.expected["number"]
+    assert result.series == case.expected["series"]
+    assert result.issuer_name == case.expected["issuer"]
+    assert result.recipient_name == case.expected["recipient"]
+    assert result.issuer_cnpj == "12345678000195"
+    expected = case.expected["amount"]
+    assert result.amount == (
+        Decimal(expected.replace(".", "").replace(",", ".")) if expected else None
+    )
+    assert result.status == (ProcessingStatus.OK if expected else ProcessingStatus.REVIEW)
+
+
+def test_headers_scope_repeated_names_and_cnpjs():
+    result = parse(
+        [
+            box("NFS-e", 0, 0),
+            box("EMITENTE PRESTADOR DO SERVIÇO", 0, 30),
+            box("CPF / CNPJ / NIF", 20, 60),
+            box("12.345.678/0001-95", 20, 80),
+            box("Nome / Nome Empresarial", 20, 120),
+            box("PRESTADORA SINTÉTICA", 20, 140),
+            box("TOMADOR DO SERVIÇO", 0, 180),
+            box("CPF / CNPJ / NIF", 20, 210),
+            box("11.111.111/1111-11", 20, 230),
+            box("Nome / Nome Empresarial", 20, 270),
+            box("CLIENTE SINTÉTICO", 20, 290),
+        ]
+    )
+    assert result.issuer_name == "PRESTADORA SINTÉTICA"
+    assert result.recipient_name == "CLIENTE SINTÉTICO"
+    assert result.issuer_cnpj == "12345678000195"
+
+
+def test_never_matches_value_on_another_page_or_column():
+    result = parse(
+        [
+            box("DANFE", 0, 0),
+            box("VALOR TOTAL DA NOTA", 20, 50),
+            box("9,99", 300, 70),
+            box("8,88", 20, 70, page=1),
+        ]
+    )
+    assert result.amount is None
+    assert QualityFlag.MISSING_AMOUNT in result.quality_flags
+
+
+def test_two_spatial_candidates_stay_ambiguous():
+    result = parse(
+        [
+            box("DANFE", 0, 0),
+            box("VALOR TOTAL DA NOTA", 20, 50),
+            box("9,99", 20, 70),
+            box("8,88", 22, 71),
+        ]
+    )
+    assert result.amount is None
+    assert QualityFlag.AMBIGUOUS_AMOUNT in result.quality_flags
+
+
+def test_section_boundary_prevents_borrowing_value():
+    result = parse(
+        [
+            box("NFS-e", 0, 0),
+            box("EMITENTE PRESTADOR DO SERVIÇO", 0, 30),
+            box("Nome / Nome Empresarial", 20, 60),
+            box("TOMADOR DO SERVIÇO", 0, 72),
+            box("CLIENTE", 20, 80),
+        ]
+    )
+    assert result.issuer_name is None
+
+
+def test_party_scope_never_carries_over_to_another_page():
+    result = parse(
+        [
+            box("NFS-e", 0, 0),
+            box("EMITENTE PRESTADOR DO SERVIÇO", 0, 30),
+            box("Nome / Nome Empresarial", 20, 60, page=1),
+            box("CLIENTE", 20, 80, page=1),
+        ]
+    )
+    assert result.issuer_name is None
+
+
+@pytest.mark.parametrize("coordinates", [(0, 10, 20, 0), (float("nan"), 0, 10, 10)])
+def test_invalid_coordinates_are_rejected(coordinates):
+    with pytest.raises(ValueError):
+        TextSpan("text", *coordinates)
+
+
+def test_amount_may_be_in_same_row_to_the_right_of_its_label():
+    result = parse(
+        [
+            box("DANFE", 0, 0),
+            box("VALOR TOTAL DA NOTA", 20, 50),
+            box("1.234,56", 145, 50),
+        ]
+    )
+    assert result.amount == Decimal("1234.56")
+    assert QualityFlag.MISSING_AMOUNT not in result.quality_flags
+
+
+def test_standard_danfe_aliases_sections_and_repeated_identifiers():
+    result = parse(
+        [
+            box("DANFE - DOCUMENTO AUXILIAR DA NOTA FISCAL ELETRÔNICA", 320, 20),
+            box("Nº", 320, 50),
+            box("000123", 445, 50),
+            box("SÉRIE", 320, 75),
+            box("001", 445, 75),
+            box("Nº", 20, 20),
+            box("000123", 145, 20),
+            box("SÉRIE", 20, 45),
+            box("001", 145, 45),
+            box("IDENTIFICAÇÃO DO EMITENTE", 20, 100),
+            box("NOME / RAZÃO SOCIAL", 20, 125),
+            box("EMITENTE SINTÉTICO LTDA", 20, 145),
+            box("CNPJ", 20, 170),
+            box("12.345.678/0001-95", 20, 190),
+            box("DESTINATÁRIO / REMETENTE", 20, 230),
+            box("NOME / RAZÃO SOCIAL", 20, 255),
+            box("DESTINATÁRIO SINTÉTICO SA", 20, 275),
+            box("DATA DA EMISSÃO", 320, 255),
+            box("29/09/2026", 320, 275),
+            box("VALOR TOTAL DA NOTA", 20, 340),
+            box("1.234,56", 145, 340),
+        ]
+    )
+    assert result.document_type == DocumentType.NFE
+    assert result.invoice_number == "000123"
+    assert result.series == "001"
+    assert result.issuer_name == "EMITENTE SINTÉTICO LTDA"
+    assert result.issuer_cnpj == "12345678000195"
+    assert result.recipient_name == "DESTINATÁRIO SINTÉTICO SA"
+    assert result.amount == Decimal("1234.56")
+
+
+def test_2026_national_nfse_labels_and_inline_values():
+    result = parse(
+        [
+            box("DANFSe", 0, 0),
+            box("NÚMERO DA NFS-e 000987", 20, 40),
+            box("SÉRIE DA DPS A1", 220, 40),
+            box("DATA E HORA DA EMISSÃO DA NFS-E 28/09/2026 11:34:29", 20, 70),
+            box("PRESTADOR / FORNECEDOR", 20, 110),
+            box("CNPJ / CPF / NIF 12.345.678/0001-95", 20, 135),
+            box("NOME / NOME EMPRESARIAL OFICINA SINTÉTICA LTDA", 20, 160),
+            box("TOMADOR / ADQUIRENTE", 20, 200),
+            box("NOME / NOME EMPRESARIAL TRANSPORTES FICTÍCIOS SA", 20, 225),
+            box("VALOR DA OPERAÇÃO / SERVIÇO R$ 1.234,56", 20, 270),
+        ]
+    )
+    assert result.document_type == DocumentType.NFSE
+    assert result.invoice_number == "000987"
+    assert result.series == "A1"
+    assert result.issue_date.isoformat() == "2026-09-28"
+    assert result.issuer_name == "OFICINA SINTÉTICA LTDA"
+    assert result.issuer_cnpj == "12345678000195"
+    assert result.recipient_name == "TRANSPORTES FICTÍCIOS SA"
+    assert result.amount == Decimal("1234.56")
+    assert result.status == ProcessingStatus.OK
+
+
+def test_danfe_compound_ocr_lines_keep_typed_values_and_party_scope():
+    result = parse(
+        [
+            box("DANFE - DOCUMENTO AUXILIAR DA NOTA FISCAL ELETRÔNICA", 20, 20),
+            box("Nº 004241885 SÉRIE 99", 320, 20),
+            box("IDENTIFICAÇÃO DO EMITENTE", 20, 60),
+            box("NOME / RAZÃO SOCIAL EMITENTE SINTÉTICO LTDA", 20, 85),
+            box("CNPJ 12.345.678/0001-95", 20, 110),
+            box("DESTINATÁRIO / REMETENTE", 20, 150),
+            box("NOME / RAZÃO SOCIAL DESTINATÁRIO SINTÉTICO SA", 20, 175),
+            box("DATA DA EMISSÃO 29/09/2026", 320, 175),
+            box("VALOR TOTAL DA NOTA R$ 1.234,56", 20, 220),
+        ]
+    )
+    assert result.document_type == DocumentType.NFE
+    assert result.invoice_number == "004241885"
+    assert result.series == "99"
+    assert result.issue_date.isoformat() == "2026-09-29"
+    assert result.issuer_name == "EMITENTE SINTÉTICO LTDA"
+    assert result.issuer_cnpj == "12345678000195"
+    assert result.recipient_name == "DESTINATÁRIO SINTÉTICO SA"
+    assert result.amount == Decimal("1234.56")
+    assert result.status == ProcessingStatus.OK

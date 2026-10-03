@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fiscal-processor"
+version = "0.1.0"
+description = "Local-only processor for Brazilian fiscal invoice PDFs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [
+  { name = "Fiscal Processor contributors" },
+]
+dependencies = [
+  "openpyxl==3.1.5",
+  "pypdfium2==5.13.0",
+]
+
+[project.scripts]
+fiscal-processor = "fiscal_processor.cli:main"
+
+[project.gui-scripts]
+fiscal-processor-desktop = "fiscal_processor.presentation.desktop:main"
+
+[project.optional-dependencies]
+ocr = [
+  "rapidocr==3.9.2",
+  "onnxruntime==1.24.2",
+  "Pillow==12.3.0",
+]
+dev = [
+  "mypy>=1.15,<2",
+  "pytest>=8.3,<9",
+  "ruff>=0.11,<1",
+]
+bundle = [
+  "pyinstaller==6.22.3",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fiscal_processor"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["fiscal_processor"]
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["openpyxl", "openpyxl.*", "pypdfium2", "pypdfium2.*", "rapidocr", "rapidocr.*", "numpy", "numpy.*", "PIL", "PIL.*"]
+ignore_missing_imports = true

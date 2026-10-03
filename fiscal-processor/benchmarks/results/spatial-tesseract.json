@@ -1,0 +1,136 @@
+{
+  "corpus": "synthetic-spatial-v1",
+  "engine": "tesseract",
+  "dpi": 200,
+  "complete": true,
+  "results": [
+    {
+      "case": "danfe-columns",
+      "split": "development",
+      "pages": 1,
+      "seconds_including_render": 0.48090749599998617,
+      "matched": 8,
+      "total": 8,
+      "exact": {
+        "type": true,
+        "number": true,
+        "series": true,
+        "date": true,
+        "cnpj": true,
+        "issuer": true,
+        "recipient": true,
+        "amount": true
+      },
+      "wrong_nonempty": [],
+      "missing": [],
+      "review_oracle": false
+    },
+    {
+      "case": "nfse-swapped",
+      "split": "evaluation",
+      "pages": 1,
+      "seconds_including_render": 0.4245296329999064,
+      "matched": 8,
+      "total": 8,
+      "exact": {
+        "type": true,
+        "number": true,
+        "series": true,
+        "date": true,
+        "cnpj": true,
+        "issuer": true,
+        "recipient": true,
+        "amount": true
+      },
+      "wrong_nonempty": [],
+      "missing": [],
+      "review_oracle": false
+    },
+    {
+      "case": "nfse-missing-total",
+      "split": "evaluation",
+      "pages": 1,
+      "seconds_including_render": 0.41207766900004117,
+      "matched": 8,
+      "total": 8,
+      "exact": {
+        "type": true,
+        "number": true,
+        "series": true,
+        "date": true,
+        "cnpj": true,
+        "issuer": true,
+        "recipient": true,
+        "amount": true
+      },
+      "wrong_nonempty": [],
+      "missing": [],
+      "review_oracle": false
+    },
+    {
+      "case": "danfe-duplicate-total",
+      "split": "evaluation",
+      "pages": 1,
+      "seconds_including_render": 0.46647443799997745,
+      "matched": 8,
+      "total": 8,
+      "exact": {
+        "type": true,
+        "number": true,
+        "series": true,
+        "date": true,
+        "cnpj": true,
+        "issuer": true,
+        "recipient": true,
+        "amount": true
+      },
+      "wrong_nonempty": [],
+      "missing": [],
+      "review_oracle": false
+    },
+    {
+      "case": "danfe-two-pages",
+      "split": "evaluation",
+      "pages": 2,
+      "seconds_including_render": 0.7270942430000105,
+      "matched": 8,
+      "total": 8,
+      "exact": {
+        "type": true,
+        "number": true,
+        "series": true,
+        "date": true,
+        "cnpj": true,
+        "issuer": true,
+        "recipient": true,
+        "amount": true
+      },
+      "wrong_nonempty": [],
+      "missing": [],
+      "review_oracle": false
+    },
+    {
+      "case": "payment-not-invoice",
+      "split": "evaluation",
+      "pages": 1,
+      "seconds_including_render": 0.30414747600002556,
+      "matched": 8,
+      "total": 8,
+      "exact": {
+        "type": true,
+        "number": true,
+        "series": true,
+        "date": true,
+        "cnpj": true,
+        "issuer": true,
+        "recipient": true,
+        "amount": true
+      },
+      "wrong_nonempty": [],
+      "missing": [],
+      "review_oracle": false
+    }
+  ],
+  "network_guard": "Python audit hook only",
+  "limits": "Synthetic author-controlled layouts; not municipal/general fiscal accuracy"
+}
