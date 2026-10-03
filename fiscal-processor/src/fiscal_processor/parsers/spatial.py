@@ -9,7 +9,15 @@ import re
 from collections.abc import Sequence
 from dataclasses import replace
 
-from fiscal_processor.domain import ExtractionMode, FiscalExtraction
+from fiscal_processor.domain import (
+    CandidateSource,
+    DomainValidationError,
+    ExtractionMode,
+    FieldCandidate,
+    FiscalExtraction,
+    FiscalField,
+    validate_cnpj,
+)
 from fiscal_processor.domain.text import TextSpan
 
 from .labelled import (
@@ -120,6 +128,143 @@ def _same_row_value(field: str, value: str) -> bool:
         return re.fullmatch(r"[A-Za-z0-9./\- ]+", value) is not None
     return False
 
+
+
+
+def _bbox(span: TextSpan) -> tuple[float, float, float, float]:
+    return (span.left, span.top, span.right, span.bottom)
+
+
+def _candidate(
+    field: FiscalField,
+    raw_value: str,
+    span: TextSpan,
+    *,
+    source: CandidateSource,
+    section: str | None = None,
+) -> FieldCandidate | None:
+    normalized_value = raw_value.strip()
+    if field == FiscalField.ISSUER_CNPJ:
+        try:
+            normalized_value = validate_cnpj(raw_value)
+        except DomainValidationError:
+            return None
+    return FieldCandidate(
+        field=field,
+        raw_value=raw_value.strip(),
+        normalized_value=normalized_value,
+        source=source,
+        page=span.page,
+        section=section,
+        bbox=_bbox(span),
+    )
+
+
+def find_nfe_visual_candidates(
+    spans: Sequence[TextSpan],
+    *,
+    source: CandidateSource = CandidateSource.NATIVE_TEXT,
+) -> tuple[FieldCandidate, ...]:
+    """Preserve DANFE number/series/issuer-CNPJ observations before resolution."""
+    if not any(
+        "DANFE" in normalized(span.text)
+        or "DOCUMENTO AUXILIAR DA NOTA FISCAL ELETRONICA" in normalized(span.text)
+        for span in spans
+    ):
+        return ()
+
+    labelled = [(span, *_label_key_and_inline(span.text)) for span in spans]
+    reserved = set(LABELS) | NAME_LABELS | CNPJ_LABELS | set(SECTIONS) | MARKERS
+    found: list[FieldCandidate] = []
+
+    for span, _key, _inline in labelled:
+        pair = _NUMBER_SERIES.search(normalized(span.text))
+        if pair is None:
+            continue
+        for field, raw_value in (
+            (FiscalField.INVOICE_NUMBER, pair.group(1)),
+            (FiscalField.SERIES, pair.group(2)),
+        ):
+            candidate = _candidate(field, raw_value, span, source=source)
+            if candidate is not None:
+                found.append(candidate)
+
+    for anchor, key, inline_value in labelled:
+        field_name = LABELS.get(key)
+        section: str | None = None
+
+        if field_name not in {"number", "series"} and key not in CNPJ_LABELS:
+            continue
+
+        if key in CNPJ_LABELS:
+            headers = [
+                (span, name)
+                for span, name, _ in labelled
+                if name in SECTIONS
+                and span.page == anchor.page
+                and span.bottom <= anchor.top
+                and span.left <= anchor.left + 8
+            ]
+            if not headers:
+                continue
+            nearest_top = max(span.top for span, _ in headers)
+            nearest = [name for span, name in headers if abs(span.top - nearest_top) <= 3]
+            section = SECTIONS[nearest[0]] if len(nearest) == 1 else "other"
+            if section != "issuer":
+                continue
+            fiscal_field = FiscalField.ISSUER_CNPJ
+        else:
+            fiscal_field = (
+                FiscalField.INVOICE_NUMBER if field_name == "number" else FiscalField.SERIES
+            )
+
+        value_spans: list[tuple[str, TextSpan]] = []
+        if inline_value:
+            value_spans.append((inline_value, anchor))
+        else:
+            value_spans.extend(
+                (span.text.strip(), span)
+                for span, name, _ in labelled
+                if span.page == anchor.page
+                and name not in reserved
+                and 0 < span.top - anchor.bottom <= 22
+                and abs(span.left - anchor.left) <= 8
+                and not any(
+                    header.page == anchor.page
+                    and header_key in SECTIONS
+                    and anchor.bottom <= header.top <= span.top
+                    for header, header_key, _ in labelled
+                )
+            )
+            value_spans.extend(
+                (span.text.strip(), span)
+                for span, name, _ in labelled
+                if span.page == anchor.page
+                and name not in reserved
+                and abs(span.top - anchor.top) <= 4
+                and 0 < span.left - anchor.right <= 220
+                and _same_row_value(
+                    "cnpj" if fiscal_field == FiscalField.ISSUER_CNPJ else field_name or "",
+                    span.text.strip(),
+                )
+            )
+
+        seen_values: set[str] = set()
+        for raw_value, value_span in value_spans:
+            if raw_value in seen_values:
+                continue
+            seen_values.add(raw_value)
+            candidate = _candidate(
+                fiscal_field,
+                raw_value,
+                value_span,
+                source=source,
+                section=section,
+            )
+            if candidate is not None:
+                found.append(candidate)
+
+    return tuple(found)
 
 def parse_spans(
     spans: Sequence[TextSpan],
