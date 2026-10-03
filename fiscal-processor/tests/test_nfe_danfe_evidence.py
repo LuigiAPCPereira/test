@@ -73,9 +73,7 @@ def test_access_key_and_visual_danfe_resolve_structural_fields() -> None:
 def test_visual_number_disagreement_with_valid_key_remains_conflict() -> None:
     resolutions = resolve_nfe_danfe_candidates(danfe_spans(visual_number="000000999"))
     number = next(
-        resolution
-        for resolution in resolutions
-        if resolution.field == FiscalField.INVOICE_NUMBER
+        resolution for resolution in resolutions if resolution.field == FiscalField.INVOICE_NUMBER
     )
 
     assert number.status == ResolutionStatus.CONFLICT

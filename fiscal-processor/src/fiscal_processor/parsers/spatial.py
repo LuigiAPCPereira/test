@@ -129,8 +129,6 @@ def _same_row_value(field: str, value: str) -> bool:
     return False
 
 
-
-
 def _bbox(span: TextSpan) -> tuple[float, float, float, float]:
     return (span.left, span.top, span.right, span.bottom)
 
